@@ -1,0 +1,78 @@
+admin_roles:
+  - "kafka-admins"
+  - "server-administrators"
+
+authorized_roles:
+  - "kafka-admins"
+  - "kafka-users"
+  - "server-administrators"
+
+policies:
+  - actions:
+      - TOPIC_CREATE
+      - TOPIC_PRODUCE
+      - TOPIC_EDIT
+      - TOPIC_DELETE
+      - GROUP_EDIT
+      - ACL_EDIT
+      - BULK_ACTION
+    effect: Allow
+    resource:
+      - cluster
+      - "*"
+    role: "kafka-admins"
+  - actions:
+      - CONNECT_CREATE
+      - CONNECT_EDIT
+    effect: Allow
+    resource:
+      - connect
+      - "*"
+    role: "kafka-admins"
+  - actions:
+      - SCHEMA_EDIT
+      - SCHEMA_CREATE
+    effect: Allow
+    resource:
+      - schema
+      - "*"
+    role: "kafka-admins"
+  - actions:
+      - BROKER_EDIT
+    effect: Allow
+    resource:
+      - cluster
+      - "*"
+    role: "kafka-admins"
+  - actions:
+      - TOPIC_PRODUCE
+      - TOPIC_EDIT
+      - ACL_EDIT
+    effect: Allow
+    resource:
+      - cluster
+      - "*"
+    role: "kafka-users"
+  - actions:
+      - CONNECT_CREATE
+      - CONNECT_EDIT
+    effect: Allow
+    resource:
+      - connect
+      - "*"
+    role: "kafka-users"
+  - actions:
+      - SCHEMA_EDIT
+      - SCHEMA_CREATE
+    effect: Deny
+    resource:
+      - schema
+      - "*"
+    role: "kafka-users"
+  - actions:
+      - TOPIC_INSPECT
+    effect: Allow
+    resource:
+      - cluster
+      - "*"
+    roles: [ "kafka-users", "kafka-admins" ]
