@@ -39,7 +39,6 @@ services:
         heartbeat.interval: 1000
         heartbeat.timeout: 5000
         rest.port: 8081
-        rest.address: localhost
         rest.bind-address: 0.0.0.0
         rest.flamegraph.enabled: true
         web.backpressure.refresh-interval: 10000
@@ -127,7 +126,10 @@ services:
     command: >
       bin/sql-gateway.sh
       start-foreground
-      -Dsql-gateway.endpoint.rest.bind-port=9090
+      -Dsql-gateway.endpoint.rest.address=0.0.0.0
+      -Dsql-gateway.endpoint.rest.port=9090
+      -Djobmanager.rpc.address=jobmanager
+      -Drest.address=jobmanager
     ports:
       - "9090:9090"
     networks:
