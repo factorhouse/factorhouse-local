@@ -1,7 +1,7 @@
 services:
   flex:
     image: factorhouse/flex:latest
-    container_name: flex
+    container_name: flex-ee
     pull_policy: always
     restart: always
     ports:
@@ -141,5 +141,5 @@ services:
 
 networks:
   factorhouse:
-    external: ${USE_EXNET:-false}
+    external: ${EXT_NET:-true}
     name: factorhouse

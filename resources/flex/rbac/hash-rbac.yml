@@ -1,78 +1,42 @@
 admin_roles:
-  - "kafka-admins"
-  - "server-administrators"
+  - "flex-admin"
 
 authorized_roles:
-  - "kafka-admins"
-  - "kafka-users"
-  - "server-administrators"
+  - "*"
 
 policies:
   - actions:
-      - TOPIC_CREATE
-      - TOPIC_PRODUCE
-      - TOPIC_EDIT
-      - TOPIC_DELETE
-      - GROUP_EDIT
-      - ACL_EDIT
-      - BULK_ACTION
-    effect: Allow
+      - FLINK_SUBMIT
+      - FLINK_JAR_DELETE
+      - FLINK_JOB_EDIT
+      - FLINK_JOB_TERMINATE
+    effect: "Allow"
     resource:
-      - cluster
+      - flink
       - "*"
-    role: "kafka-admins"
+    role: "flex-admin"
   - actions:
-      - CONNECT_CREATE
-      - CONNECT_EDIT
-    effect: Allow
-    resource:
-      - connect
-      - "*"
-    role: "kafka-admins"
+      - FLINK_JOB_EDIT  
+    effect: "Allow"
+    resources: # resources (plural) is also supported:
+      - 
+        - flink
+        - "*"
+        - flink-job
+        - PaymentStreamJob
+      - 
+        - flink
+        - "*"
+        - flink-job
+        - ReconciliationJob
+    role: "flex-user"
   - actions:
-      - SCHEMA_EDIT
-      - SCHEMA_CREATE
-    effect: Allow
+      - FLINK_JOB_TERMINATE
+    effect: "Stage"
     resource:
-      - schema
+      - flink
       - "*"
-    role: "kafka-admins"
-  - actions:
-      - BROKER_EDIT
-    effect: Allow
-    resource:
-      - cluster
-      - "*"
-    role: "kafka-admins"
-  - actions:
-      - TOPIC_PRODUCE
-      - TOPIC_EDIT
-      - ACL_EDIT
-    effect: Allow
-    resource:
-      - cluster
-      - "*"
-    role: "kafka-users"
-  - actions:
-      - CONNECT_CREATE
-      - CONNECT_EDIT
-    effect: Allow
-    resource:
-      - connect
-      - "*"
-    role: "kafka-users"
-  - actions:
-      - SCHEMA_EDIT
-      - SCHEMA_CREATE
-    effect: Deny
-    resource:
-      - schema
-      - "*"
-    role: "kafka-users"
-  - actions:
-      - TOPIC_INSPECT
-    effect: Allow
-    resource:
-      - cluster
-      - "*"
-    roles: [ "kafka-users", "kafka-admins" ]
+      - flink-job
+      - PaymentStreamJob
+    roles:
+      - flex-user
