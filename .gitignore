@@ -1,4 +1,5 @@
 .ignore
+.vscode
 .idea
 .DS_Store
 /kpow-resources/connect/
