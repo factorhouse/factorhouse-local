@@ -1,4 +1,5 @@
 .ignore
 .idea
 .DS_Store
-/resources/connect/
+/kpow-resources/connect/
+/flex-resources/connect/
