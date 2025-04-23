@@ -20,7 +20,7 @@ services:
       SCHEMA_REGISTRY_AUTHENTICATION_ROLES: schema-admin
       SCHEMA_REGISTRY_OPTS: -Djava.security.auth.login.config=/etc/schema/schema_jaas.conf
     volumes:
-      - ./resources-kpow/schema:/etc/schema
+      - ./resources/kpow/schema:/etc/schema
 
   connect:
     image: confluentinc/cp-kafka-connect:7.8.0
@@ -49,7 +49,7 @@ services:
       CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
       CONNECT_PLUGIN_PATH: /usr/share/java/,/etc/kafka-connect/jars
     volumes:
-      - ./resources-kpow/connect:/etc/kafka-connect/jars
+      - ./resources/kpow/connect:/etc/kafka-connect/jars
 
   kpow:
     image: factorhouse/kpow:latest
@@ -64,11 +64,11 @@ services:
       connect:
        condition: service_healthy
     env_file:
-      - resources-kpow/kpow/local-trial.env
+      - resources/kpow/config/local-trial.env
     mem_limit: 2G
     volumes:
-      - ./resources-kpow/jaas:/etc/kpow/jaas
-      - ./resources-kpow/rbac:/etc/kpow/rbac
+      - ./resources/kpow/jaas:/etc/kpow/jaas
+      - ./resources/kpow/rbac:/etc/kpow/rbac
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.8.0
