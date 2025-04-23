@@ -2,3 +2,7 @@
 .idea
 .DS_Store
 /resources/connect/
+
+## ignore environment files that include license details
+kpow-resources/kpow/local-community.env
+kpow-resources/kpow/local-trial.env
