@@ -3,7 +3,7 @@
 ### Start SQL Client
 
 ```bash
-$ docker exec -it jobmanager ./bin/sql-client.sh
+docker exec -it jobmanager ./bin/sql-client.sh
 ```
 
 ### Add the Flink Facker Connector
@@ -66,3 +66,5 @@ SELECT *
         )
     ) WHERE rownum <= 3;
 ```
+
+![flink-sql-window-top-n](../images/flink-sql-window-top-n.gif)
