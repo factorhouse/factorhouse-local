@@ -2,5 +2,5 @@
 .vscode
 .idea
 .DS_Store
-/kpow-resources/connect/
-/flex-resources/connect/
+/resources/kpow/connect/
+/resources/flex/jar/
