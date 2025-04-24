@@ -41,7 +41,7 @@ mkdir -p $FLINK_CONNECTOR_PATH
 echo "downloading flink connectors ..."
 curl --silent -o ${FLINK_CONNECTOR_PATH}/flink-sql-connector-kafka-3.3.0-1.20.jar \
   https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.3.0-1.20/flink-sql-connector-kafka-3.3.0-1.20.jar
-curl --silent -o ${FLINK_CONNECTOR_PATH}/flink-faker-0.5.3.jar \
+curl --silent -L -o ${FLINK_CONNECTOR_PATH}/flink-faker-0.5.3.jar \
   https://github.com/knaufk/flink-faker/releases/download/v0.5.3/flink-faker-0.5.3.jar
 
 ## Flink libs
