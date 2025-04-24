@@ -1,1 +1,6 @@
 .ignore
+.vscode
+.idea
+.DS_Store
+/resources/kpow/connect/
+/resources/flex/jar/

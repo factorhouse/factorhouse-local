@@ -1,0 +1,42 @@
+admin_roles:
+  - "flex-admin"
+
+authorized_roles:
+  - "*"
+
+policies:
+  - actions:
+      - FLINK_SUBMIT
+      - FLINK_JAR_DELETE
+      - FLINK_JOB_EDIT
+      - FLINK_JOB_TERMINATE
+    effect: "Allow"
+    resource:
+      - flink
+      - "*"
+    role: "flex-admin"
+  - actions:
+      - FLINK_JOB_EDIT  
+    effect: "Allow"
+    resources: # resources (plural) is also supported:
+      - 
+        - flink
+        - "*"
+        - flink-job
+        - PaymentStreamJob
+      - 
+        - flink
+        - "*"
+        - flink-job
+        - ReconciliationJob
+    role: "flex-user"
+  - actions:
+      - FLINK_JOB_TERMINATE
+    effect: "Stage"
+    resource:
+      - flink
+      - "*"
+      - flink-job
+      - PaymentStreamJob
+    roles:
+      - flex-user

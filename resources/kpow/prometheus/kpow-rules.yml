@@ -1,0 +1,33 @@
+groups:
+- name: AllInstances
+  rules:
+  - alert: UnhealthyConsumer
+    expr: group_state == 0 or group_state == 1 or group_state == 2
+    for: 5m
+    annotations:
+      summary: "Consumer {{ $labels.target }} is unhealthy"
+      description:  "The Consumer Group {{ $labels.target }} has gone into {{ $labels.state }} for cluster {{ $labels.id }}"
+  - alert: UnhealthyConnectorTask
+    expr: connect_connector_task_state != 1
+    for: 5m
+    annotations:
+      summary: "Connect task {{ $labels.target }} is unhealthy"
+      description:  "The Connector task {{ $labels.target }} has gone into {{ $labels.target }} for cluster {{ $labels.id }}"
+  - alert: UnhealthyConnector
+    expr: connect_connector_state != 1
+    for: 5m
+    annotations:
+      summary: "Connector {{ $labels.target }} is unhealthy"
+      description:  "The Connector {{ $labels.target }} has gone into {{ $labels.target }} for cluster {{ $labels.id }}"
+  - alert: LaggingConsumerGroup
+    expr: group_offset_lag > 5000
+    for: 5m
+    annotations:
+      summary: "Consumer group {{ $labels.target }} is lagging"
+      description:  "Consumer group {{ $labels.target }} is lagging for cluster {{ $labels.id }}"
+  - alert: KpowDown
+    expr: up == 0 and {job="kpow"}
+    for: 1m
+    annotations:
+      summary: "kPow is down"
+      description:  "kPow instance {{ $labels.target }} has been down for more than 1 minute."

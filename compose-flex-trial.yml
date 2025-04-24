@@ -1,0 +1,161 @@
+services:
+  flex:
+    image: factorhouse/flex:latest
+    container_name: flex-ee
+    pull_policy: always
+    restart: always
+    ports:
+      - "3001:3000"
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    env_file:
+      - resources/flex/config/local-trial.env
+    mem_limit: 2G
+    volumes:
+      - ./resources/flex/jaas:/etc/flex/jaas
+      - ./resources/flex/rbac:/etc/flex/rbac
+
+  jobmanager:
+    image: factorhouse/flink
+    container_name: jobmanager
+    pull_policy: never
+    command: jobmanager
+    ports:
+      - "8082:8081"
+    networks:
+      - factorhouse
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        state.backend: filesystem
+        state.checkpoints.dir: file:///tmp/flink-checkpoints
+        state.savepoints.dir: file:///tmp/flink-savepoints
+        heartbeat.interval: 1000
+        heartbeat.timeout: 5000
+        rest.port: 8081
+        rest.bind-address: 0.0.0.0
+        rest.flamegraph.enabled: true
+        web.backpressure.refresh-interval: 10000
+    volumes:
+      - ./resources/flex/jar/connector:/tmp/connector
+      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
+      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/config"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  taskmanager-1:
+    image: factorhouse/flink
+    container_name: taskmanager-1
+    pull_policy: never
+    command: taskmanager
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 10
+        state.backend: filesystem
+        state.checkpoints.dir: file:///tmp/flink-checkpoints
+        state.savepoints.dir: file:///tmp/flink-savepoints
+        heartbeat.interval: 1000
+        heartbeat.timeout: 5000
+    volumes:
+      - ./resources/flex/jar/connector:/tmp/connector
+      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
+      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
+
+  taskmanager-2:
+    image: factorhouse/flink
+    container_name: taskmanager-2
+    pull_policy: never
+    command: taskmanager
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 10
+        state.backend: filesystem
+        state.checkpoints.dir: file:///tmp/flink-checkpoints
+        state.savepoints.dir: file:///tmp/flink-savepoints
+        heartbeat.interval: 1000
+        heartbeat.timeout: 5000
+    volumes:
+      - ./resources/flex/jar/connector:/tmp/connector
+      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
+      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
+
+  taskmanager-3:
+    image: factorhouse/flink
+    container_name: taskmanager-3
+    pull_policy: never
+    command: taskmanager
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 10
+        state.backend: filesystem
+        state.checkpoints.dir: file:///tmp/flink-checkpoints
+        state.savepoints.dir: file:///tmp/flink-savepoints
+        heartbeat.interval: 1000
+        heartbeat.timeout: 5000
+    volumes:
+      - ./resources/flex/jar/connector:/tmp/connector
+      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
+      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
+
+  sql-gateway:
+    image: factorhouse/flink
+    container_name: sql-gateway
+    pull_policy: never
+    command: >
+      bin/sql-gateway.sh
+      start-foreground
+      -Dsql-gateway.endpoint.rest.address=0.0.0.0
+      -Dsql-gateway.endpoint.rest.port=9090
+      -Djobmanager.rpc.address=jobmanager
+      -Drest.address=jobmanager
+    ports:
+      - "9090:9090"
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    environment:
+      - FLINK_SQL_GATEWAY_DEFAULT_CATALOG_NAME=default_catalog
+      - FLINK_SQL_GATEWAY_DEFAULT_DATABASE_NAME=default_database
+
+networks:
+  factorhouse:
+    external: ${USE_EXT:-true}
+    name: factorhouse
