@@ -19,12 +19,10 @@ services:
       - ./resources/flex/rbac:/etc/flex/rbac
 
   jobmanager:
-    image: flink-factorhouse-local
+    image: factorhouse/flink
     container_name: jobmanager
-    build:
-      context: resources/flex/docker
-      dockerfile: Dockerfile
-    command: jobmanager    
+    pull_policy: never
+    command: jobmanager
     ports:
       - "8082:8081"
     networks:
@@ -42,6 +40,12 @@ services:
         rest.bind-address: 0.0.0.0
         rest.flamegraph.enabled: true
         web.backpressure.refresh-interval: 10000
+    volumes:
+      - ./resources/flex/jar/connector:/tmp/connector
+      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
+      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/config"]
       interval: 5s
@@ -49,11 +53,9 @@ services:
       retries: 5
 
   taskmanager-1:
-    image: flink-factorhouse-local
+    image: factorhouse/flink
     container_name: taskmanager-1
-    build:
-      context: resources/flex/docker
-      dockerfile: Dockerfile
+    pull_policy: never
     command: taskmanager
     networks:
       - factorhouse
@@ -70,13 +72,17 @@ services:
         state.savepoints.dir: file:///tmp/flink-savepoints
         heartbeat.interval: 1000
         heartbeat.timeout: 5000
+    volumes:
+      - ./resources/flex/jar/connector:/tmp/connector
+      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
+      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
 
   taskmanager-2:
-    image: flink-factorhouse-local
+    image: factorhouse/flink
     container_name: taskmanager-2
-    build:
-      context: resources/flex/docker
-      dockerfile: Dockerfile
+    pull_policy: never
     command: taskmanager
     networks:
       - factorhouse
@@ -93,13 +99,17 @@ services:
         state.savepoints.dir: file:///tmp/flink-savepoints
         heartbeat.interval: 1000
         heartbeat.timeout: 5000
+    volumes:
+      - ./resources/flex/jar/connector:/tmp/connector
+      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
+      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
 
   taskmanager-3:
-    image: flink-factorhouse-local
+    image: factorhouse/flink
     container_name: taskmanager-3
-    build:
-      context: resources/flex/docker
-      dockerfile: Dockerfile
+    pull_policy: never
     command: taskmanager
     networks:
       - factorhouse
@@ -116,13 +126,17 @@ services:
         state.savepoints.dir: file:///tmp/flink-savepoints
         heartbeat.interval: 1000
         heartbeat.timeout: 5000
+    volumes:
+      - ./resources/flex/jar/connector:/tmp/connector
+      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
+      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
+      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
 
   sql-gateway:
-    image: flink-factorhouse-local
+    image: factorhouse/flink
     container_name: sql-gateway
-    build:
-      context: resources/flex/docker
-      dockerfile: Dockerfile
+    pull_policy: never
     command: >
       bin/sql-gateway.sh
       start-foreground
@@ -143,5 +157,5 @@ services:
 
 networks:
   factorhouse:
-    external: ${EXT_NET:-true}
+    external: ${USE_EXT:-true}
     name: factorhouse
