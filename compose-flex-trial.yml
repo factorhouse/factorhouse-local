@@ -12,7 +12,8 @@ services:
       jobmanager:
         condition: service_healthy
     env_file:
-      - resources/flex/config/local-trial.env
+      - resources/flex/config/trial.env
+      - ${FLEX_TRIAL_LICENSE:-resources/flex/config/trial-license.env}
     mem_limit: 2G
     volumes:
       - ./resources/flex/jaas:/etc/flex/jaas

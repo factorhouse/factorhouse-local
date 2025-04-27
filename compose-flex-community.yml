@@ -13,6 +13,7 @@ services:
         condition: service_healthy
     env_file:
       - resources/flex/config/local-community.env
+      - ${KPOW_COMMUNITY_LICENSE:-resources/flex/config/community-license.env}
     mem_limit: 2G
     volumes:
       - ./resources/flex/jaas:/etc/flex/jaas

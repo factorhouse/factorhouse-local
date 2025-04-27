@@ -62,9 +62,10 @@ services:
       - factorhouse
     depends_on:
       connect:
-       condition: service_healthy
+        condition: service_healthy
     env_file:
-      - resources/kpow/config/local-trial.env
+      - resources/kpow/config/trial.env
+      - ${KPOW_TRIAL_LICENSE:-resources/kpow/config/trial-license.env}
     mem_limit: 2G
     volumes:
       - ./resources/kpow/jaas:/etc/kpow/jaas
