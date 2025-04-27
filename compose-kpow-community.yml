@@ -62,9 +62,10 @@ services:
       - factorhouse
     depends_on:
       connect:
-       condition: service_healthy
+        condition: service_healthy
     env_file:
-      - resources/kpow/config/local-community.env
+      - resources/kpow/config/community.env
+      - ${KPOW_COMMUNITY_LICENSE:-resources/kpow/config/community-license.env}
     mem_limit: 2G
 
   zookeeper:
