@@ -1,0 +1,67 @@
+services:
+  pinot-controller:
+    image: apachepinot/pinot:1.2.0
+    command: "StartController -zkAddress zookeeper:2181"
+    container_name: pinot_controller
+    restart: unless-stopped
+    ports:
+      - "19000:9000"
+    networks:
+      - factorhouse
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms512M -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-controller.log"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+  pinot-broker:
+    image: apachepinot/pinot:1.2.0
+    command: "StartBroker -zkAddress zookeeper:2181"
+    container_name: pinot_broker
+    restart: unless-stopped
+    ports:
+      - "18099:8099"
+    networks:
+      - factorhouse
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx2G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-broker.log"
+    depends_on:
+      pinot-controller:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8099/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+  pinot-server:
+    image: apachepinot/pinot:1.2.0
+    command: "StartServer -zkAddress zookeeper:2181"
+    container_name: pinot_server
+    restart: unless-stopped
+    ports:
+      - "18098:8098"
+    networks:
+      - factorhouse
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms2G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log"
+    depends_on:
+      pinot-broker:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:8097/health/readiness || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+networks:
+  factorhouse:
+    external: ${USE_EXT:-true}
+    name: factorhouse
