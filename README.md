@@ -2,6 +2,8 @@
 
 # Factor House Local
 
+![architecture](./images/factorhouse-local.png)
+
 ## Set up Environment
 
 ```bash
