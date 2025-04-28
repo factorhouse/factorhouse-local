@@ -3,10 +3,10 @@ services:
     image: tabulario/spark-iceberg:3.5.5_1.8.1
     container_name: spark-iceberg
     ports:
-      - 8888:8888
-      - 8080:8080
-      - 10000:10000
-      - 10001:10001
+      - 8888:8888 # jupyter notebook server
+      - 8080:8080 # spark web UI
+      # - 10000:10000 # enable if using spark thrift server (default binary mode)
+      # - 10001:10001 # enable if using spark thrift server (potential http mode)
     networks:
       - factorhouse
     depends_on:
