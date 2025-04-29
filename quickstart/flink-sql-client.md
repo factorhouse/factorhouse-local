@@ -6,7 +6,7 @@
 docker exec -it jobmanager ./bin/sql-client.sh
 ```
 
-### Add the Flink Facker Connector
+### Add the Flink Faker Connector
 
 ```SQL
 -- // Add JAR
@@ -26,14 +26,14 @@ SHOW JARS;
 
 ```sql
 CREATE TABLE orders (
-    bidtime TIMESTAMP(3),
+    bid_time TIMESTAMP(3),
     price DOUBLE,
     item STRING,
     supplier STRING,
-    WATERMARK FOR bidtime AS bidtime - INTERVAL '5' SECONDS
+    WATERMARK FOR bid_time AS bid_time - INTERVAL '5' SECONDS
 ) WITH (
   'connector' = 'faker',
-  'fields.bidtime.expression' = '#{date.past ''30'',''SECONDS''}',
+  'fields.bid_time.expression' = '#{date.past ''30'',''SECONDS''}',
   'fields.price.expression' = '#{Number.randomDouble ''2'',''1'',''150''}',
   'fields.item.expression' = '#{Commerce.productName}',
   'fields.supplier.expression' = '#{regexify ''(Alice|Bob|Carol|Alex|Joe|James|Jane|Jack)''}',
@@ -61,7 +61,7 @@ SELECT *
         FROM (
             SELECT window_start, window_end, supplier, ROUND(SUM(price), 2) as price, COUNT(*) as cnt
             FROM TABLE(
-                TUMBLE(TABLE orders, DESCRIPTOR(bidtime), INTERVAL '5' SECONDS))
+                TUMBLE(TABLE orders, DESCRIPTOR(bid_time), INTERVAL '5' SECONDS))
             GROUP BY window_start, window_end, supplier
         )
     ) WHERE rownum <= 3;

@@ -41,12 +41,14 @@ services:
         rest.bind-address: 0.0.0.0
         rest.flamegraph.enabled: true
         web.backpressure.refresh-interval: 10000
+        fs.s3a.access.key: admin
+        fs.s3a.secret.key: password
+        fs.s3a.endpoint: http://minio:9000
+        fs.s3a.path.style.access: true
     volumes:
       - ./resources/flex/jar/connector:/tmp/connector
-      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
-      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
-      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
-      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
+      - ./resources/flex/jar/parquet:/tmp/parquet
+      - ./resources/flex/jar/iceberg:/tmp/iceberg
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/config"]
       interval: 5s
@@ -73,12 +75,14 @@ services:
         state.savepoints.dir: file:///tmp/flink-savepoints
         heartbeat.interval: 1000
         heartbeat.timeout: 5000
+        fs.s3a.access.key: admin
+        fs.s3a.secret.key: password
+        fs.s3a.endpoint: http://minio:9000
+        fs.s3a.path.style.access: true
     volumes:
       - ./resources/flex/jar/connector:/tmp/connector
-      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
-      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
-      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
-      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
+      - ./resources/flex/jar/parquet:/tmp/parquet
+      - ./resources/flex/jar/iceberg:/tmp/iceberg
 
   taskmanager-2:
     image: factorhouse/flink
@@ -100,12 +104,14 @@ services:
         state.savepoints.dir: file:///tmp/flink-savepoints
         heartbeat.interval: 1000
         heartbeat.timeout: 5000
+        fs.s3a.access.key: admin
+        fs.s3a.secret.key: password
+        fs.s3a.endpoint: http://minio:9000
+        fs.s3a.path.style.access: true
     volumes:
       - ./resources/flex/jar/connector:/tmp/connector
-      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
-      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
-      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
-      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
+      - ./resources/flex/jar/parquet:/tmp/parquet
+      - ./resources/flex/jar/iceberg:/tmp/iceberg
 
   taskmanager-3:
     image: factorhouse/flink
@@ -127,12 +133,14 @@ services:
         state.savepoints.dir: file:///tmp/flink-savepoints
         heartbeat.interval: 1000
         heartbeat.timeout: 5000
+        fs.s3a.access.key: admin
+        fs.s3a.secret.key: password
+        fs.s3a.endpoint: http://minio:9000
+        fs.s3a.path.style.access: true
     volumes:
       - ./resources/flex/jar/connector:/tmp/connector
-      - ./resources/flex/jar/lib/iceberg-flink-runtime-1.20-1.8.1.jar:/opt/flink/lib/iceberg-flink-runtime-1.20-1.8.1.jar
-      - ./resources/flex/jar/lib/iceberg-aws-bundle-1.8.1.jar:/opt/flink/lib/iceberg-aws-bundle-1.8.1.jar
-      - ./resources/flex/jar/plugin/flink-s3-fs-hadoop-1.20.1.jar:/opt/flink/plugins/s3-fs-hadoop/flink-s3-fs-hadoop-1.20.1.jar
-      - ./resources/flex/jar/plugin/flink-s3-fs-presto-1.20.1.jar:/opt/flink/plugins/s3-fs-presto/flink-s3-fs-presto-1.20.1.jar
+      - ./resources/flex/jar/parquet:/tmp/parquet
+      - ./resources/flex/jar/iceberg:/tmp/iceberg
 
   sql-gateway:
     image: factorhouse/flink
