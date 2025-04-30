@@ -29,6 +29,13 @@ mkdir -p $KAFKA_CONNECTOR_PATH/msk-datagen
 curl --silent -L -o $KAFKA_CONNECTOR_PATH/msk-datagen/msk-data-generator.jar \
   https://github.com/awslabs/amazon-msk-data-generator/releases/download/v0.4.0/msk-data-generator-0.4-jar-with-dependencies.jar
 
+curl --silent -L -o $KAFKA_CONNECTOR_PATH/iceberg.zip \
+  https://github.com/databricks/iceberg-kafka-connect/releases/download/v0.6.19/iceberg-kafka-connect-runtime-0.6.19.zip \
+  && unzip -qq $KAFKA_CONNECTOR_PATH/iceberg.zip -d $KAFKA_CONNECTOR_PATH \
+  && mv $KAFKA_CONNECTOR_PATH/iceberg-kafka-connect-runtime-0.6.19/lib $KAFKA_CONNECTOR_PATH/iceberg \
+  && rm $KAFKA_CONNECTOR_PATH/iceberg.zip \
+  && rm -rf $KAFKA_CONNECTOR_PATH/iceberg-kafka-connect-runtime-0.6.19
+
 ####
 #### Download Flink connectors
 ####

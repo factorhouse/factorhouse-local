@@ -48,8 +48,9 @@ services:
       CONNECT_REST_ADVERTISED_HOST_NAME: "localhost"
       CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
       CONNECT_PLUGIN_PATH: /usr/share/java/,/etc/kafka-connect/jars
+      AWS_REGION: us-east-1 # for iceberg sink
     volumes:
-      - ./resources/kpow/connect:/etc/kafka-connect/jars
+      - ./resources/kpow/connector:/etc/kafka-connect/jars
 
   kpow:
     image: factorhouse/kpow-ce:latest
