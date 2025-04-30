@@ -1,4 +1,4 @@
-## Spark SQL Example
+## Spark SQL Iceberg Example
 
 ### Start Spark SQL
 

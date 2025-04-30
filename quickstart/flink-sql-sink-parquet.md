@@ -1,4 +1,4 @@
-## SQL Client S3 Example
+## Flink SQL Parquet Example
 
 ### Start SQL Client
 
@@ -6,29 +6,12 @@
 docker exec -it jobmanager ./bin/sql-client.sh
 ```
 
-### Configuration
-
-```SQL
---// Set checkpoint interval to 1 minute
-SET 'execution.checkpointing.interval' = '60000';
--- --// Set the checkpointing mode (e.g., 'EXACTLY_ONCE')
--- SET 'execution.checkpointing.mode' = 'EXACTLY_ONCE';
--- --// Set checkpoint timeout to 50 seconds
--- SET 'execution.checkpointing.timeout' = '50000';
--- --// Minimum pause between checkpoints, e.g., 20 seconds
--- SET 'execution.checkpointing.min-pause' = '20000';
-
--- // Add JARs
-ADD JAR 'file:///tmp/connector/flink-faker-0.5.3.jar';
-ADD JAR 'file:///tmp/parquet/flink-sql-parquet-1.20.1.jar';
-ADD JAR 'file:///tmp/parquet/hadoop-common-3.4.1.jar';
-ADD JAR 'file:///tmp/parquet/hadoop-mapreduce-client-core-3.4.1.jar';
-ADD JAR 'file:///opt/flink/opt/flink-s3-fs-hadoop-1.20.1.jar';
-```
-
 ### Create a Source Table
 
 ```sql
+ADD JAR 'file:///tmp/connector/flink-faker-0.5.3.jar';
+-- SHOW JARS;
+
 CREATE TABLE orders (
     bid_time TIMESTAMP(3),
     price DOUBLE,
@@ -48,6 +31,15 @@ CREATE TABLE orders (
 ### Create a Sink Table and Insert into MinIO
 
 ```sql
+--// Set checkpoint interval to 1 minute
+SET 'execution.checkpointing.interval' = '60000';
+-- --// Set the checkpointing mode (e.g., 'EXACTLY_ONCE')
+-- SET 'execution.checkpointing.mode' = 'EXACTLY_ONCE';
+-- --// Set checkpoint timeout to 50 seconds
+-- SET 'execution.checkpointing.timeout' = '50000';
+-- --// Minimum pause between checkpoints, e.g., 20 seconds
+-- SET 'execution.checkpointing.min-pause' = '20000';
+
 CREATE TABLE orders_sink(
     bid_date STRING,
     bid_hour STRING,
