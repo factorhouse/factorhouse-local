@@ -1,0 +1,45 @@
+## JobManager setting (ignored by TaskManager)
+jobmanager.rpc.address: jobmanager
+# Mandatory memory configuration
+jobmanager.memory.process.size: 1024m
+
+# TaskManager setting (ignored by JobManager)
+taskmanager.numberOfTaskSlots: 5
+taskmanager.memory.process.size: 1024m
+
+# State backend
+state.backend: filesystem
+state.checkpoints.dir: file:///tmp/flink-checkpoints
+state.savepoints.dir: file:///tmp/flink-savepoints
+
+# Heartbeat
+heartbeat.interval: 1000
+heartbeat.timeout: 5000
+
+# REST settings (applicable to JobManager)
+rest.port: 8081
+rest.bind-address: 0.0.0.0
+rest.flamegraph.enabled: true
+web.backpressure.refresh-interval: 10000
+
+# MinIO
+fs.s3a.access.key: admin
+fs.s3a.secret.key: password
+fs.s3a.endpoint: http://minio:9000
+fs.s3a.path.style.access: true
+
+# Iceberg Catalog
+sql.catalog.demo.type: iceberg
+sql.catalog.demo.catalog-type: rest
+sql.catalog.demo.uri: http://rest:8181
+sql.catalog.demo.io-impl: org.apache.iceberg.aws.s3.S3FileIO
+sql.catalog.demo.s3.endpoint: http://minio:9000
+sql.catalog.demo.s3.path-style-access: true
+sql.catalog.demo.s3.access-key-id: admin
+sql.catalog.demo.s3.secret-access-key: password
+sql.default-catalog: demo
+
+# No hadoop security & auth check
+security.context.factory: org.apache.flink.runtime.security.contexts.NoOpSecurityContextFactory
+security.auth.check-keytab: false
+security.auth.check-kerberos: false

@@ -29,26 +29,13 @@ services:
     networks:
       - factorhouse
     environment:
-      - |
-        FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager
-        state.backend: filesystem
-        state.checkpoints.dir: file:///tmp/flink-checkpoints
-        state.savepoints.dir: file:///tmp/flink-savepoints
-        heartbeat.interval: 1000
-        heartbeat.timeout: 5000
-        rest.port: 8081
-        rest.bind-address: 0.0.0.0
-        rest.flamegraph.enabled: true
-        web.backpressure.refresh-interval: 10000
-        fs.s3a.access.key: admin
-        fs.s3a.secret.key: password
-        fs.s3a.endpoint: http://minio:9000
-        fs.s3a.path.style.access: true
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - AWS_REGION=us-east-1
+      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
     volumes:
-      - ./resources/flex/jar/connector:/tmp/connector
-      - ./resources/flex/jar/parquet:/tmp/parquet
-      - ./resources/flex/jar/iceberg:/tmp/iceberg
+      - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
+      - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
+      - ./resources/flex/connector:/tmp/connector
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/config"]
       interval: 5s
@@ -66,23 +53,13 @@ services:
       jobmanager:
         condition: service_healthy
     environment:
-      - |
-        FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 10
-        state.backend: filesystem
-        state.checkpoints.dir: file:///tmp/flink-checkpoints
-        state.savepoints.dir: file:///tmp/flink-savepoints
-        heartbeat.interval: 1000
-        heartbeat.timeout: 5000
-        fs.s3a.access.key: admin
-        fs.s3a.secret.key: password
-        fs.s3a.endpoint: http://minio:9000
-        fs.s3a.path.style.access: true
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - AWS_REGION=us-east-1
+      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
     volumes:
-      - ./resources/flex/jar/connector:/tmp/connector
-      - ./resources/flex/jar/parquet:/tmp/parquet
-      - ./resources/flex/jar/iceberg:/tmp/iceberg
+      - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
+      - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
+      - ./resources/flex/connector:/tmp/connector
 
   taskmanager-2:
     image: factorhouse/flink
@@ -95,23 +72,13 @@ services:
       jobmanager:
         condition: service_healthy
     environment:
-      - |
-        FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 10
-        state.backend: filesystem
-        state.checkpoints.dir: file:///tmp/flink-checkpoints
-        state.savepoints.dir: file:///tmp/flink-savepoints
-        heartbeat.interval: 1000
-        heartbeat.timeout: 5000
-        fs.s3a.access.key: admin
-        fs.s3a.secret.key: password
-        fs.s3a.endpoint: http://minio:9000
-        fs.s3a.path.style.access: true
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - AWS_REGION=us-east-1
+      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
     volumes:
-      - ./resources/flex/jar/connector:/tmp/connector
-      - ./resources/flex/jar/parquet:/tmp/parquet
-      - ./resources/flex/jar/iceberg:/tmp/iceberg
+      - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
+      - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
+      - ./resources/flex/connector:/tmp/connector
 
   taskmanager-3:
     image: factorhouse/flink
@@ -124,23 +91,13 @@ services:
       jobmanager:
         condition: service_healthy
     environment:
-      - |
-        FLINK_PROPERTIES=
-        jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 10
-        state.backend: filesystem
-        state.checkpoints.dir: file:///tmp/flink-checkpoints
-        state.savepoints.dir: file:///tmp/flink-savepoints
-        heartbeat.interval: 1000
-        heartbeat.timeout: 5000
-        fs.s3a.access.key: admin
-        fs.s3a.secret.key: password
-        fs.s3a.endpoint: http://minio:9000
-        fs.s3a.path.style.access: true
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - AWS_REGION=us-east-1
+      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
     volumes:
-      - ./resources/flex/jar/connector:/tmp/connector
-      - ./resources/flex/jar/parquet:/tmp/parquet
-      - ./resources/flex/jar/iceberg:/tmp/iceberg
+      - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
+      - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
+      - ./resources/flex/connector:/tmp/connector
 
   sql-gateway:
     image: factorhouse/flink
@@ -163,6 +120,13 @@ services:
     environment:
       - FLINK_SQL_GATEWAY_DEFAULT_CATALOG_NAME=default_catalog
       - FLINK_SQL_GATEWAY_DEFAULT_DATABASE_NAME=default_database
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - AWS_REGION=us-east-1
+      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+    volumes:
+      - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
+      - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
+      - ./resources/flex/connector:/tmp/connector
 
 networks:
   factorhouse:
