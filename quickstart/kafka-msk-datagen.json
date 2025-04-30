@@ -3,6 +3,7 @@
   "config": {
     "connector.class": "com.amazonaws.mskdatagen.GeneratorSourceConnector",
     "tasks.max": "2",
+
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "key.converter.schemas.enable": false,
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",

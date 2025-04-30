@@ -1,0 +1,29 @@
+{
+  "name": "iceberg-sink-demo",
+  "config": {
+    "connector.class": "io.tabular.iceberg.connect.IcebergSinkConnector",
+    "tasks.max": "1",
+    "topics": "order",
+
+    "iceberg.catalog": "demo",
+    "iceberg.catalog.type": "rest",
+    "iceberg.catalog.uri": "http://rest:8181",
+    "iceberg.catalog.warehouse": "s3://warehouse",
+    "iceberg.catalog.io-impl": "org.apache.iceberg.aws.s3.S3FileIO",
+    "iceberg.catalog.s3.endpoint": "http://minio:9000",
+    "iceberg.catalog.s3.region": "us-east-1",
+    "iceberg.catalog.s3.access-key-id": "admin",
+    "iceberg.catalog.s3.secret-access-key": "password",
+    "iceberg.catalog.s3.path-style-access": "true",
+    "iceberg.catalog.client.connect-timeout-ms": "10000",
+    "iceberg.catalog.client.read-timeout-ms": "60000",
+
+    "iceberg.tables": "db.order",
+
+    "iceberg.control.commit.interval-ms": "10000",
+
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false
+  }
+}

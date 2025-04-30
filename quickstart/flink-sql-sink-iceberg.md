@@ -45,3 +45,11 @@ CREATE TABLE db.users (
 INSERT INTO db.users VALUES (1, 'Alice');
 SELECT * FROM db.users;
 ```
+
+The query result is shown on terminal.
+
+![query-result](../images/flink-iceberg-1.png)
+
+Also, check the iceberg table on MinIO.
+
+![iceberg-table](../images/flink-iceberg-2.png)
