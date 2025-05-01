@@ -326,6 +326,8 @@ This architecture provides the foundation for ingesting data from batch (e.g., H
 
 </details>
 
+---
+
 ## Prerequisites
 
 ### Install Docker
