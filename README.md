@@ -10,7 +10,7 @@ We provide several pre-configured Docker Compose environments to showcase differ
 
 <details>
 
-<summary><b>Comprehensive Kafka Development & Monitoring Stack with Kpow</b></summary>
+<summary><b>Kafka Development & Monitoring Stack with Kpow</b></summary>
 
 <br>
 
@@ -93,8 +93,6 @@ It's ideal for scenarios involving **event-driven architectures, microservices c
 
 </details>
 
-<br>
-
 <details>
 
 <summary><b>Real-Time Stream Analytics Stack with Flink + Flex</b></summary>
@@ -165,8 +163,6 @@ It is designed for use cases that go beyond traditional batch or lakehouse proce
 - Lakehouse-friendly, works well with batch processors (e.g., Spark) downstream.
 
 </details>
-
-<br>
 
 <details>
 
@@ -257,8 +253,6 @@ It's ideal for **batch ETL/ELT, interactive data exploration via notebooks, and 
 
 </details>
 
-<br>
-
 <details>
 
 <summary><b>Apache Pinot Real-Time OLAP Cluster</b></summary>
@@ -332,38 +326,150 @@ This architecture provides the foundation for ingesting data from batch (e.g., H
 
 </details>
 
-<br>
+## Prerequisites
 
-## Set up Environment
+### Install Docker
+
+The local cluster runs with Docker Compose, so you will need to [install Docker](https://www.docker.com/).
+
+Once Docker is installed, clone this repository and run the following commands from the base path.
+
+### Clone this repository
+
+```
+git clone git@github.com:factorhouse/factorhouse-local.git
+```
+
+### Change into the repository directory
+
+```
+cd factorhouse-local
+```
+
+### Download Kafka and Flink Connectors
+
+The Following Connectors are downloaded and made available.
+
+- **Kafka**
+  - [Confulent S3 Sink Connector](https://docs.confluent.io/kafka-connectors/s3-sink/current/overview.html)
+  - [Debezium connector for PostgreSQL](https://debezium.io/documentation/reference/stable/connectors/postgresql.html)
+  - [Apache Iceberg Sink Connector](https://github.com/databricks/iceberg-kafka-connect)
+  - [Amazon MSK Data Generator](https://github.com/awslabs/amazon-msk-data-generator)
+- **Flink**
+  - [Apache Kafka SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/table/kafka/)
+  - [Flink Facker Connector](https://github.com/knaufk/flink-faker)
 
 ```bash
-## set up environment
 ./resources/setup-env.sh
 
 # downloading kafka connectors ...
 # downloading flink connectors ...
-# downloading iceberg flink runtime and iceberg aws bundle ...
-# downloading s3 hadoop and presto plugins ...
-# building a custom docker image (factorhouse/flink) for PyFlink support ...
-# sha256:9941ebf0a422e8ffc52971da280866db20b7d4d684f14e29740a157d557bee34
 ```
+
+### Update Kpow and Flex Licenses
+
+For managing Kpow and Flex licenses effectively, it's strongly recommended to store the license files **externally** from your main configuration or version control system (like Git). This approach prevents accidental exposure of sensitive license details and makes updating or swapping licenses much simpler.
+
+The Docker Compose files facilitates this by allowing you to specify the path to your license file using **environment variables** on your host machine _before_ launching the services. Specifically, they are configured to look for these variables and use their values to locate the appropriate license file via the `env_file` directive. If an environment variable is not set, a default path (usually within the `resources` directory) is used as a fallback.
+
+The specific environment variables used are:
+
+- **`KPOW_TRIAL_LICENSE`**: Specifies the path to the Kpow Enterprise Trial license file.
+- **`KPOW_COMMUNITY_LICENSE`**: Specifies the path to the Kpow Community license file.
+- **`FLEX_TRIAL_LICENSE`**: Specifies the path to the Flex Trial license file.
+- **`FLEX_COMMUNITY_LICENSE`**: Specifies the path to the Flex Community license file.
+
+**Example Usage:**
+
+Imagine your Kpow Community license is stored at `/opt/licenses/kpow-community.env`. To instruct Docker Compose to use this specific file, you would set the environment variable on your host _before_ running the compose command:
+
+```bash
+# Set the environment variable (syntax may vary slightly depending on your shell)
+export KPOW_COMMUNITY_LICENSE=/opt/licenses/kpow-community.env
+
+# Now run Docker Compose - it will use the path set above
+docker compose -p kpow -f compose-kpow-community.yml up -d
+```
+
+<details>
+
+<summary>License file example</summary>
+
+```
+### Your License Details
+LICENSE_ID=<license-id>
+LICENSE_CODE=<license-code>
+LICENSEE=<licensee>
+LICENSE_EXPIRY=<license-expiry>
+LICENSE_SIGNATURE=<license-signature>
+```
+
+</details>
+
+<details>
+
+<summary>License mapping details</summary>
+
+```yaml
+# compose-kpow-trial.yml
+services:
+  kpow:
+    ...
+    env_file:
+      - resources/kpow/config/trial.env
+      - ${KPOW_TRIAL_LICENSE:-resources/kpow/config/trial-license.env}
+
+# compose-kpow-community.yml
+
+services:
+kpow:
+...
+env_file: - resources/kpow/config/community.env - ${KPOW_COMMUNITY_LICENSE:-resources/kpow/config/community-license.env}
+
+# compose-flex-trial.yml
+
+services:
+flex:
+...
+env_file: - resources/flex/config/trial.env - ${FLEX_TRIAL_LICENSE:-resources/flex/config/trial-license.env}
+
+# compose-flex-trial.yml
+
+services:
+flex:
+...
+env_file: - resources/flex/config/local-community.env - ${KPOW_COMMUNITY_LICENSE:-resources/flex/config/community-license.env}
+```
+
+</details>
 
 ## Start Resources
 
+There are two primary methods for launching the various Docker Compose stacks (Kpow, Flex, Analytics, Pinot).
+
+- The first method launches all stacks sequentially as an integrated system, offering variants for either **Kpow Enterprise (Trial)** (`compose-kpow-trial.yml`) or **Kpow Community** (`compose-kpow-community.yml`) as the initial component. It uses the `&&` operator to ensure the Kpow stack starts first, which is important becuse it is responsible for creating the shared `factorhouse` Docker network used by the other services. Note that this integrated approach employs the `-p <project_name>` flag for each `docker compose` command (e.g., `-p kpow`, `-p flex`) to assign distinct project names. This prevents potential conflicts and "orphan container" warnings that can occur when Docker Compose manages multiple configurations from the same directory, ensuring each stack is managed as a separate entity while sharing the network.
+- The second method demonstrates starting services individually. Kpow (Trial or Community) can be launched standalone. To start Flex or Analytics independently (perhaps for isolated testing), the `USE_EXT=false` environment variable should be prepended to their respective commands. This overrides their default network configuration (defined as `external: ${USE_EXT:-true}` within their Compose files), forcing them to create its own Docker network. Note that the Pinot stack cannot be started in this isolated fashion because its configuration explicitly depends on the Zookeeper service provided by the Kpow stack, requiring them to be on the same network.
+
 ```bash
-## Start Kpow, Flex and associated resources
-##  - Kpow should be started first
-##      because it creates the Docker network that is shared across all resources
-##  - Set different project names to avoid the following warning
-##      WARN[0002] Found orphan containers ([kpow-ee connect schema_registry kafka-2 kafka-1 kafka-3 zookeeper]) for this project.
+## Method 1
+# Kpow Enterprise
 docker compose -p kpow -f compose-kpow-trial.yml up -d \
   && docker compose -p flex -f compose-flex-trial.yml up -d \
   && docker compose -p analytics -f compose-analytics.yml up -d \
   && docker compose -p pinot -f compose-pinot.yml up -d
 
-## Start individual services
-##  - USE_EXT=false if not kpow
+# Kpow Community
+docker compose -p kpow -f compose-kpow-community.yml up -d \
+  && docker compose -p flex -f compose-flex-trial.yml up -d \
+  && docker compose -p analytics -f compose-analytics.yml up -d \
+  && docker compose -p pinot -f compose-pinot.yml up -d
+
+## Method 2
+# Kpow Enterprise
 docker compose -f compose-kpow-trial.yml up -d
+# Kpow Community
+docker compose -f compose-kpow-trial.yml up -d
+
 USE_EXT=false docker compose -f compose-flex-trial.yml up -d
 USE_EXT=false docker compose -p analytics -f compose-analytics.yml up -d
 # Pinot cannot be started on its own because it depends on the Zookeeper service in the Kpow stack
@@ -371,28 +477,61 @@ USE_EXT=false docker compose -p analytics -f compose-analytics.yml up -d
 
 ## Stop/Remove Resources
 
+Likewise, there are two methods for stopping and removing the containers and Docker networks.
+
+- The first method handles the teardown of the **entire integrated system**. It uses `docker compose down` sequentially for each stack, specifying the corresponding `-p <project_name>` flag used during startup (e.g., `-p pinot`, `-p analytics`) to ensure the correct set of resources is targeted. The order is reversed compared to startup, with the Kpow stack (Trial or Community) being brought down _last_. This is necessary because the Kpow stack creates the shared `factorhouse` network, and removing it last allows other services to cleanly detach before the network is removed.
+- The second method addresses stopping **individual services** that might have been started in isolation. Kpow (Trial or Community) is stopped using a simple `docker compose down`. For Flex and Analytics, if they were started independently using `USE_EXT=false`, the same `USE_EXT=false` environment variable _must_ be prepended to the `docker compose down` command. This ensures Docker Compose correctly identifies and removes the _isolated_ network that was created specifically for that stack during its isolated startup.
+
 ```bash
-## Stop and remove Kpow, Flex and associated resources
-##  - Kpow should be removed last because it contains the Docker network
-##  - Ensure to use the same project names
+## Method 1
+# Kpow Enterprise
 docker compose -p pinot -f compose-pinot.yml down \
   && docker compose -p analytics -f compose-analytics.yml down \
   && docker compose -p flex -f compose-flex-trial.yml down \
   && docker compose -p kpow -f compose-kpow-trial.yml down
 
-## Stop and remove Flex on its own by setting USE_EXT=false
+# Kpow Community
+docker compose -p pinot -f compose-pinot.yml down \
+  && docker compose -p analytics -f compose-analytics.yml down \
+  && docker compose -p flex -f compose-flex-trial.yml down \
+  && docker compose -p kpow -f compose-kpow-community.yml down
+
+## Method 2
+# Kpow Enterprise
 docker compose -f compose-kpow-trial.yml down
+# Kpow Community
+docker compose -f compose-kpow-community.yml down
+
 USE_EXT=false docker compose -f compose-flex-trial.yml down
 USE_EXT=false docker compose -p analytics -f compose-analytics.yml down
-# Pinot cannot be started on its own because it depends on the Zookeeper service in the Kpow stack
 ```
+
+## QuickStart Examples
+
+1. [Kafka Iceberg Sink](./quickstart/kafka-iceberg-sink.md)  
+   Streams data from Kafka into an Apache Iceberg table stored in MinIO. Topics are created, an Iceberg table is defined via Spark SQL, and the Iceberg Sink Connector is deployed and monitored using **Kpow**. Ingested records are validated in the MinIO-backed Iceberg table.
+
+2. [Flink SQL Client](./quickstart/flink-sql-client.md)  
+   Uses the [Flink Faker](https://github.com/knaufk/flink-faker) connector to simulate streaming data with randomized fields. Demonstrates creating a mock `orders` table and running a tumbling window Top-N query to identify top suppliers, showcasing real-time Flink SQL analytics.
+
+3. [Flink SQL Gateway](./quickstart/flink_sql_gateway.py)  
+   A Python script that interacts with Flink SQL Gateway via REST API using `urllib3`. It automates session handling, statement submission (e.g., with `datagen`), and paginated result fetching, enabling programmatic control over Flink SQL.
+
+4. [Flink Parquet Sink](./quickstart/flink-sql-sink-parquet.md)  
+   Shows how to write streaming data to Parquet files in MinIO using Flink SQL. Synthetic data is generated via Flink Faker, partitioned by time, and stored using the filesystem connector. Checkpointing ensures reliability; results are visualized with **Flex**.
+
+5. [Flink Iceberg Sink](./quickstart/flink-sql-sink-iceberg.md)  
+   Demonstrates setting up an Iceberg catalog on MinIO and creating a Parquet-backed `db.users` table. Sample records are inserted and queried via Flink SQL, validating the use of Iceberg as a Flink table sink with S3-compatible storage.
+
+6. [Spark SQL Iceberg](./quickstart/spark-sql-iceberg.md)  
+   Illustrates using Spark SQL with an Iceberg catalog. After verifying the `demo` catalog, a `db.users` table is created and queried, confirming successful data insertion and storage in MinIO through Iceberg.
+
+7. [Pinot Analytics](./quickstart/pinot-analytics.md)  
+   Walks through table creation, batch ingestion, and analytical querying in Apache Pinot. A `baseballStats` table is set up using schema and config files, data is loaded via ingestion job, and queries are run to aggregate and display player stats.
 
 ## Port Mapping
 
-**Kpow**
-
-- `compose-kpow-trial.yml`
-- `compose-kpow-community.yml`
+### Kafka with Kpow Stack
 
 | Service Name | Port(s) (Host:Container) | Description                                               |
 | :----------- | :----------------------- | :-------------------------------------------------------- |
@@ -404,10 +543,7 @@ USE_EXT=false docker compose -p analytics -f compose-analytics.yml down
 | `kafka-2`    | `9093:9093`              | Kafka Broker 2 (message broker instance)                  |
 | `kafka-3`    | `9094:9094`              | Kafka Broker 3 (message broker instance)                  |
 
-**Flex**
-
-- `compose-flex-community.yml`
-- `compose-flex-trial.yml`
+### Flink with Flex Stack
 
 | Service Name  | Port(s) (Host:Container) | Description                                                       |
 | :------------ | :----------------------- | :---------------------------------------------------------------- |
@@ -417,9 +553,7 @@ USE_EXT=false docker compose -p analytics -f compose-analytics.yml down
 
 _(Note: `taskmanager-1`, `taskmanager-2`, `taskmanager-3` do not expose ports to the host)_
 
-**Analytics**
-
-- `compose-analytics.yml`
+### Analytics & Lakehouse Stack
 
 | Service Name    | Port(s) (Host:Container)                                     | Description                                                               |
 | :-------------- | :----------------------------------------------------------- | :------------------------------------------------------------------------ |
@@ -430,12 +564,41 @@ _(Note: `taskmanager-1`, `taskmanager-2`, `taskmanager-3` do not expose ports to
 
 _(Note: `mc` does not expose ports to the host)_
 
-**Pinot**
-
-- `compose-pinot.yml`
+### Apache Pinot Stack
 
 | Service Name       | Port(s) (Host:Container) | Description                                                 |
 | :----------------- | :----------------------- | :---------------------------------------------------------- |
 | `pinot-controller` | `19000:9000`             | Apache Pinot Controller (manages cluster state, UI/API)     |
 | `pinot-broker`     | `18099:8099`             | Apache Pinot Broker (handles query routing and results)     |
 | `pinot-server`     | `18098:8098`             | Apache Pinot Server (hosts data segments, executes queries) |
+
+## Dependency Configuration for Flink SQL Client and SQL Gateway
+
+The `factorhouse/flink` Docker image comes pre-packaged with essential JAR dependencies required for interacting with Hadoop filesystems (HDFS, S3A, etc.), processing Parquet files, and managing Apache Iceberg tables. However, by default, the Flink SQL Client and SQL Gateway services only automatically load JARs located directly within the standard `/opt/flink/lib` directory.
+
+Since the necessary Hadoop, Parquet, and Iceberg JARs are intentionally placed in dedicated directories within the image (e.g., `/tmp/hadoop/`, `/tmp/iceberg/`, `/tmp/parquet/`), they are **not included** in the default classpath of these services. To ensure these critical dependencies are correctly loaded at runtime for use by the SQL Client and Gateway, you **must** configure the following environment variable:
+
+- `CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"`
+
+Setting `CUSTOM_JARS_DIRS` instructs Flink to scan these additional specified directories and load any JAR files found within them, thereby making the required classes available for SQL operations involving these technologies. Without this environment variable explicitly set, only the core Flink JARs residing in `/opt/flink/lib` are loaded, and attempts to use Hadoop, Parquet, or Iceberg connectors and formats via SQL would likely result in `ClassNotFound` or orther related errors.
+
+Note that this environment variable is configured by default. If you intend to submit with your own application (as a Uber fat jar), comment it out in all Flink services (JobManager, TaskManager, and optionally SQL Gateway).
+
+**Without CUSTOM_JARS_DIRS**
+
+```log
+Starting Job Manager
+Classpath Output:
+/opt/flink/lib/flink-cep-1.20.1.jar:/opt/flink/lib/flink-connector-files-1.20.1.jar:/opt/flink/lib/flink-csv-1.20.1.jar:/opt/flink/lib/flink-json-1.20.1.jar:/opt/flink/lib/flink-scala_2.12-1.20.1.jar:/opt/flink/lib/flink-table-api-java-uber-1.20.1.jar:/opt/flink/lib/flink-table-planner-loader-1.20.1.jar:/opt/flink/lib/flink-table-runtime-1.20.1.jar:/opt/flink/lib/log4j-1.2-api-2.17.1.jar:/opt/flink/lib/log4j-api-2.17.1.jar:/opt/flink/lib/log4j-core-2.17.1.jar:/opt/flink/lib/log4j-slf4j-impl-2.17.1.jar:/opt/flink/lib/flink-dist-1.20.1.jar
+```
+
+**With CUSTOM_JARS_DIRS**
+
+```log
+Starting Job Manager
+[INFO] Added custom JARs from /tmp/hadoop
+[INFO] Added custom JARs from /tmp/iceberg
+[INFO] Added custom JARs from /tmp/parquet
+Classpath Output:
+/opt/flink/lib/flink-cep-1.20.1.jar:/opt/flink/lib/flink-connector-files-1.20.1.jar:/opt/flink/lib/flink-csv-1.20.1.jar:/opt/flink/lib/flink-json-1.20.1.jar:/opt/flink/lib/flink-scala_2.12-1.20.1.jar:/opt/flink/lib/flink-table-api-java-uber-1.20.1.jar:/opt/flink/lib/flink-table-planner-loader-1.20.1.jar:/opt/flink/lib/flink-table-runtime-1.20.1.jar:/opt/flink/lib/log4j-1.2-api-2.17.1.jar:/opt/flink/lib/log4j-api-2.17.1.jar:/opt/flink/lib/log4j-core-2.17.1.jar:/opt/flink/lib/log4j-slf4j-impl-2.17.1.jar:/tmp/hadoop/stax2-api-4.2.1.jar:/tmp/hadoop/hadoop-shaded-guava-1.1.1.jar:/tmp/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/tmp/hadoop/commons-configuration2-2.8.0.jar:/tmp/hadoop/hadoop-auth-3.3.6.jar:/tmp/hadoop/hadoop-mapreduce-client-core-3.3.6.jar:/tmp/hadoop/woodstox-core-6.5.1.jar:/tmp/hadoop/hadoop-aws-3.3.6.jar:/tmp/hadoop/hadoop-common-3.3.6.jar:/tmp/hadoop/hadoop-hdfs-client-3.3.6.jar:/tmp/iceberg/iceberg-aws-bundle-1.8.1.jar:/tmp/iceberg/iceberg-flink-runtime-1.20-1.8.1.jar:/tmp/parquet/flink-sql-parquet-1.20.1.jar:/opt/flink/lib/flink-dist-1.20.1.jar
+```
