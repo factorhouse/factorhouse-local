@@ -15,7 +15,7 @@
 5. [Flink Iceberg Sink](./flink-sql-sink-iceberg.md)  
    Demonstrates setting up an Iceberg catalog on MinIO and creating a Parquet-backed `db.users` table. Sample records are inserted and queried via Flink SQL, validating the use of Iceberg as a Flink table sink with S3-compatible storage.
 
-6. [Spark SQL Iceberg](./spark-sql.md)  
+6. [Spark SQL Iceberg](./spark-sql-iceberg.md)  
    Illustrates using Spark SQL with an Iceberg catalog. After verifying the `demo` catalog, a `db.users` table is created and queried, confirming successful data insertion and storage in MinIO through Iceberg.
 
 7. [Pinot Analytics](./pinot-analytics.md)  
