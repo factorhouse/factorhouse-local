@@ -27,15 +27,22 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build and Push Factorhouse Flink Docker Image
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate and Build Factorhouse Flink Docker Images
         run: |
-          IMAGE_TAG=${{github.event.inputs.image_tag}}
+          IMAGE_TAG="${{ github.event.inputs.image_tag }}"
           .github/workflows/scripts/validate-image-tag.sh "$IMAGE_TAG"
 
           FLINK_DOCKER_FILE_PATH=./resources/flex/docker
-          docker buildx build -f $FLINK_DOCKER_FILE_PATH/Dockerfile \
-            --platform=linux/amd64,linux/arm64 -t factorhouse/flink:latest --push $FLINK_DOCKER_FILE_PATH
-          docker buildx build -f $FLINK_DOCKER_FILE_PATH/Dockerfile \
-            --platform=linux/amd64,linux/arm64 -t factorhouse/flink:lts --push $FLINK_DOCKER_FILE_PATH
-          docker buildx build -f $FLINK_DOCKER_FILE_PATH/Dockerfile \
-            --platform=linux/amd64,linux/arm64 -t factorhouse/flink:$IMAGE_TAG --push $FLINK_DOCKER_FILE_PATH
+          PLATFORMS="linux/amd64,linux/arm64"
+
+          for TAG in latest lts "$IMAGE_TAG"; do
+            echo "Building and pushing factorhouse/flink:$TAG"
+            docker buildx build \
+              --platform=$PLATFORMS \
+              -f "$FLINK_DOCKER_FILE_PATH/Dockerfile" \
+              -t "factorhouse/flink:$TAG" \
+              --push "$FLINK_DOCKER_FILE_PATH"
+          done
