@@ -30,8 +30,12 @@ jobs:
       - name: Build and Push Factorhouse Flink Docker Image
         run: |
           IMAGE_TAG=${{github.event.inputs.image_tag}}
-          .github/scripts/validate-image-tag.sh "$IMAGE_TAG"
+          .github/workflows/scripts/validate-image-tag.sh "$IMAGE_TAG"
 
-          docker buildx build -f ./resources/flex/docker/Dockerfile --platform=linux/amd64,linux/arm64 -t factorhouse/flink:latest --push .
-          docker buildx build -f ./resources/flex/docker/Dockerfile --platform=linux/amd64,linux/arm64 -t factorhouse/flink:lts --push .
-          docker buildx build -f ./resources/flex/docker/Dockerfile --platform=linux/amd64,linux/arm64 -t factorhouse/flink:$IMAGE_TAG --push .
+          FLINK_DOCKER_FILE_PATH=./resources/flex/docker
+          docker buildx build -f $FLINK_DOCKER_FILE_PATH/Dockerfile \
+            --platform=linux/amd64,linux/arm64 -t factorhouse/flink:latest --push $FLINK_DOCKER_FILE_PATH
+          docker buildx build -f $FLINK_DOCKER_FILE_PATH/Dockerfile \
+            --platform=linux/amd64,linux/arm64 -t factorhouse/flink:lts --push $FLINK_DOCKER_FILE_PATH
+          docker buildx build -f $FLINK_DOCKER_FILE_PATH/Dockerfile \
+            --platform=linux/amd64,linux/arm64 -t factorhouse/flink:$IMAGE_TAG --push $FLINK_DOCKER_FILE_PATH
