@@ -4,7 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Image tag of factorhouse/flink, Expected format: X.Y.Z"
+        description: |
+          The image tag for the Factorhouse Flink Docker image. 
+          This tag should match the LTS release version of Flink, 
+          as listed in the Flink documentation: 
+          [https://nightlies.apache.org/flink/flink-docs-lts/](https://nightlies.apache.org/flink/flink-docs-lts/). 
+          Expected format: X.Y.Z (e.g., 1.20.1).
         required: true
 
 jobs:
