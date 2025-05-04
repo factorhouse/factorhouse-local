@@ -1,0 +1,38 @@
+name: Release Factorhouse Flink Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag of factorhouse/flink, Expected format: X.Y.Z"
+        required: true
+
+# These permissions are needed to interact with GitHub's OIDC Token endpoint.
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log into DockerHub registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and Push Factorhouse Flink Docker Image
+        run: |
+          IMAGE_TAG=${{github.event.inputs.image_tag}}
+          .github/scripts/validate-image-tag.sh "$IMAGE_TAG"
+
+          docker buildx build -f ./resources/flex/docker/Dockerfile --platform=linux/amd64,linux/arm64 -t factorhouse/flink:latest --push .
+          docker buildx build -f ./resources/flex/docker/Dockerfile --platform=linux/amd64,linux/arm64 -t factorhouse/flink:lts --push .
+          docker buildx build -f ./resources/flex/docker/Dockerfile --platform=linux/amd64,linux/arm64 -t factorhouse/flink:$IMAGE_TAG --push .
