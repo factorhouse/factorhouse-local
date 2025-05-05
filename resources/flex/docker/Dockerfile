@@ -21,8 +21,16 @@ RUN apt-get update -y \
     coreutils \
     openjdk-11-jdk \
   && ln -s /usr/bin/python3 /usr/bin/python \
+  # Dynamically detect actual JDK install path (portable across archs)
+  && JDK_INSTALL_PATH="$(dirname $(dirname $(readlink -f $(which javac))))" \
+  && mkdir -p /opt/java \
+  && ln -s "${JDK_INSTALL_PATH}" /opt/java/openjdk \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
+
+# Set JAVA_HOME for PyFlink and any Java-based tools
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Install PyFlink using pip
 RUN pip3 install --no-cache-dir apache-flink==1.20.1
@@ -32,6 +40,8 @@ RUN echo "--- Verify installations ---" && \
     echo "Java Version (using PATH):" && java -version && \
     echo "Python Version:" && python --version && \
     echo "PyFlink Location:" && python -m pip show apache-flink && \
+    echo "JAVA_HOME resolved to: $JAVA_HOME" && \
+    ls -la "$JAVA_HOME/include" && \
     echo "------"
 
 ## copy s3 file system plugins plugins
