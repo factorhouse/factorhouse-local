@@ -1,15 +1,28 @@
 FROM flink:1.20.1
 
-# Install Python, pip, and JDK 17 headers (required for arm64)
+## Install Python and curl
 RUN apt-get update -y \
   && apt-get install -y \
-     python3 python3-pip python3-dev \
-     openjdk-17-jdk-headless \
+     python3 python3-pip python3-dev curl \
   && ln -s /usr/bin/python3 /usr/bin/python \
   && rm -rf /var/lib/apt/lists/*
 
+## Install Temurin JDK 17 (for arm64)
+RUN curl -fsSL https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.5%2B8/OpenJDK17U-jdk_x64_linux_hotspot_17.0.5_8.tar.gz \
+      -o /tmp/temurin-17.tar.gz \
+    && mkdir -p /opt/temurin \
+    && tar -xzf /tmp/temurin-17.tar.gz -C /opt/temurin --strip-components=1 \
+    && rm /tmp/temurin-17.tar.gz
+
+# Set JAVA_HOME and update PATH
+ENV JAVA_HOME=/opt/temurin
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
 ## install PyFlink
 RUN pip3 install apache-flink==1.20.1
+
+## Verify Java and PyFlink installation
+RUN java -version && javac -version && python3 -m apache_flink.__version__
 
 ## copy s3 file system plugins plugins
 RUN mkdir /opt/flink/plugins/s3-fs-hadoop \
