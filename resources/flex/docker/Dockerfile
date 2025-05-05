@@ -1,15 +1,13 @@
 FROM flink:1.20.1
 
-# TARGETARCH is automatically provided by Docker buildx.
-# It will be 'amd64', 'arm64', etc.
 ARG TARGETARCH
 
-# Install prerequisites:
-# - Python 3, pip, and dev headers
-# - build-essential: Needed for compiling Python packages from source
-# - curl, ca-certificates, coreutils: General utilities
-# - openjdk-11-jdk: Provides the full JDK (headers etc.)
-#                   needed for PyFlink compilation, especially on arm64.
+# Set correct Temurin JDK 11 download URL based on arch
+ENV TEMURIN_BASE_URL=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.22%2B7
+ENV TEMURIN_JDK_AMD64=OpenJDK11U-jdk_x64_linux_hotspot_11.0.22_7.tar.gz
+ENV TEMURIN_JDK_ARM64=OpenJDK11U-jdk_aarch64_linux_hotspot_11.0.22_7.tar.gz
+
+# Install dependencies and Python tools
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     python3 \
@@ -19,25 +17,24 @@ RUN apt-get update -y \
     build-essential \
     ca-certificates \
     coreutils \
-    openjdk-11-jdk \
   && ln -s /usr/bin/python3 /usr/bin/python \
-  # Dynamically detect actual JDK install path (portable across archs)
-  && JDK_INSTALL_PATH="$(dirname $(dirname $(readlink -f $(which javac))))" \
+  # Download and extract the appropriate JDK
   && mkdir -p /opt/java \
-  && ln -s "${JDK_INSTALL_PATH}" /opt/java/openjdk \
+  && curl -fsSL ${TEMURIN_BASE_URL}/$(if [ "$TARGETARCH" = "arm64" ]; then echo $TEMURIN_JDK_ARM64; else echo $TEMURIN_JDK_AMD64; fi) \
+     | tar -xz -C /opt/java --strip-components=1 \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Set JAVA_HOME for PyFlink and any Java-based tools
-ENV JAVA_HOME=/opt/java/openjdk
+# Set JAVA_HOME and update PATH
+ENV JAVA_HOME=/opt/java
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
-# Install PyFlink using pip
+# Install PyFlink
 RUN pip3 install --no-cache-dir apache-flink==1.20.1
 
-# Verify installations
+# Verify setup
 RUN echo "--- Verify installations ---" && \
-    echo "Java Version (using PATH):" && java -version && \
+    echo "Java Version:" && java -version && \
     echo "Python Version:" && python --version && \
     echo "PyFlink Location:" && python -m pip show apache-flink && \
     echo "JAVA_HOME resolved to: $JAVA_HOME" && \
