@@ -1,26 +1,80 @@
+# Use the official multi-arch Flink image
 FROM flink:1.20.1
 
-## Install Python and curl
+# TARGETARCH is automatically provided by Docker buildx.
+# It will be 'amd64', 'arm64', etc.
+ARG TARGETARCH
+
+# Set Java Version and base URL
+ENV JAVA_VERSION=17.0.11_9
+ENV TEMURIN_CHECKSUM_amd64="ebe9927148a85912d63115797d6ffc88a0c48540536e616cc8c2875b953e43a5"
+ENV TEMURIN_CHECKSUM_arm64="962fc31a4069d1b02b7819010d09b3438b4f1356921d60fcfd6c4fb672114c80"
+
+# Install prerequisites:
+# - Python 3, pip, and dev headers
+# - curl for potential downloads
+# - build-essential: Needed for compiling Python packages from source (like apache-flink on arm64)
+# Combine steps to reduce layers and clean up in the same layer
 RUN apt-get update -y \
-  && apt-get install -y \
-     python3 python3-pip python3-dev curl \
+  && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-dev \
+    curl \
+    build-essential \
+  # Create python symlink if needed
   && ln -s /usr/bin/python3 /usr/bin/python \
+  # Clean up apt cache
+  && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-## Install Temurin JDK 17 (for arm64)
-RUN curl -fsSL https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.5%2B8/OpenJDK17U-jdk_x64_linux_hotspot_17.0.5_8.tar.gz \
-      -o /tmp/temurin-17.tar.gz \
-    && mkdir -p /opt/temurin \
-    && tar -xzf /tmp/temurin-17.tar.gz -C /opt/temurin --strip-components=1 \
-    && rm /tmp/temurin-17.tar.gz
+# Download and install Temurin JDK
+RUN set -eux; \
+    # Map Docker's TARGETARCH to Temurin's arch names
+    case "$TARGETARCH" in \
+        'amd64') \
+            TEMURIN_ARCH='x64'; \
+            TEMURIN_CHECKSUM="$TEMURIN_CHECKSUM_amd64"; \
+            ;; \
+        'arm64') \
+            TEMURIN_ARCH='aarch64'; \
+            TEMURIN_CHECKSUM="$TEMURIN_CHECKSUM_arm64"; \
+            ;; \
+        *) \
+            echo "Unsupported architecture: $TARGETARCH"; \
+            exit 1; \
+            ;; \
+    esac; \
+    \
+    # Construct download URL
+    TEMURIN_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-${JAVA_VERSION}/OpenJDK17U-jdk_${TEMURIN_ARCH}_linux_hotspot_${JAVA_VERSION//_/-}.tar.gz"; \
+    \
+    # Download, verify checksum, and extract
+    echo "Downloading Temurin JDK from $TEMURIN_URL"; \
+    curl -fL -o /tmp/openjdk.tar.gz "$TEMURIN_URL"; \
+    echo "$TEMURIN_CHECKSUM /tmp/openjdk.tar.gz" | sha256sum -c -; \
+    mkdir -p /opt/java; \
+    tar -xzf /tmp/openjdk.tar.gz -C /opt/java --strip-components=1; \
+    rm /tmp/openjdk.tar.gz; \
+    \
+    # Verify java command exists
+    ls -l /opt/java/bin/java; \
+    /opt/java/bin/java -version
 
-# Set JAVA_HOME and update PATH
-ENV JAVA_HOME=/opt/temurin
+# Set JAVA_HOME and update PATH *after* installation
+# This ensures the new Java is used by default
+ENV JAVA_HOME=/opt/java
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
-RUN java -version && javac -version
 
-## install PyFlink
-RUN pip3 install apache-flink==1.20.1
+# Install PyFlink using pip
+RUN pip3 install --no-cache-dir apache-flink==1.20.1
+
+# Verify installations
+RUN echo "Java Version (Temurin):" && java -version \
+  && echo "JAVA_HOME:" && echo $JAVA_HOME \
+  && echo "Python Version:" && python --version \
+  && echo "Pip Version:" && pip --version \
+  && echo "PyFlink Location:" && python -m pip show apache-flink
 
 ## copy s3 file system plugins plugins
 RUN mkdir /opt/flink/plugins/s3-fs-hadoop \
