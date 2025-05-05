@@ -1,4 +1,3 @@
-# Use the official multi-arch Flink image
 FROM flink:1.20.1
 
 # TARGETARCH is automatically provided by Docker buildx.
@@ -7,7 +6,10 @@ ARG TARGETARCH
 
 # Install prerequisites:
 # - Python 3, pip, and dev headers
-# - build-essential: Needed for compiling Python packages from source (like apache-flink on arm64)
+# - build-essential: Needed for compiling Python packages from source
+# - curl, ca-certificates, coreutils: General utilities
+# - openjdk-11-jdk: Provides the full JDK (headers etc.)
+#                   needed for PyFlink compilation, especially on arm64.
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     python3 \
@@ -17,45 +19,10 @@ RUN apt-get update -y \
     build-essential \
     ca-certificates \
     coreutils \
+    openjdk-11-jdk \
   && ln -s /usr/bin/python3 /usr/bin/python \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
-
-# Download and install Temurin JDK
-RUN set -eux; \
-    # Map Docker's TARGETARCH to Temurin's arch names
-    case "$TARGETARCH" in \
-        'amd64') \
-            TEMURIN_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_x64_linux_hotspot_17.0.15_6.tar.gz"; \
-            TEMURIN_CHECKSUM="9616877c733c9249328ea9bd83a5c8c30e0f9a7af180cac8ffda9034161c2df2"; \
-            TEMURIN_ARCH='x64'; \
-            ;; \
-        'arm64') \
-            TEMURIN_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_aarch64_linux_hotspot_17.0.15_6.tar.gz"; \
-            TEMURIN_CHECKSUM="0db0d6cbe33238f33aa52837b1dc8fc6067b34d206b3e0f9243c7f8c9b9539a5"; \
-            TEMURIN_ARCH='aarch64'; \
-            ;; \
-        *) \
-            echo "Unsupported architecture: $TARGETARCH"; \
-            exit 1; \
-            ;; \
-    esac; \
-    # Download, verify checksum, and extract
-    echo "Downloading Temurin JDK 17.0.15_6 for $TEMURIN_ARCH from $TEMURIN_URL"; \
-    curl -fL -o /tmp/openjdk.tar.gz "$TEMURIN_URL"; \
-    echo "$TEMURIN_CHECKSUM /tmp/openjdk.tar.gz" | sha256sum -c -; \
-    mkdir -p /opt/java; \
-    tar -xzf /tmp/openjdk.tar.gz -C /opt/java --strip-components=1; \
-    rm /tmp/openjdk.tar.gz; \
-    \
-    # Verify java command exists
-    ls -l /opt/java/bin/java; \
-    /opt/java/bin/java -version
-
-# Set JAVA_HOME and update PATH *after* installation
-# This ensures the new Java is used by default
-ENV JAVA_HOME=/opt/java
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Install PyFlink using pip
 RUN pip3 install --no-cache-dir apache-flink==1.20.1
@@ -64,7 +31,6 @@ RUN pip3 install --no-cache-dir apache-flink==1.20.1
 RUN echo "--- Verify installations ---" && \
     echo "Java Version (using PATH):" && java -version && \
     echo "Python Version:" && python --version && \
-    echo "Pip Version:" && pip --version && \
     echo "PyFlink Location:" && python -m pip show apache-flink && \
     echo "------"
 
