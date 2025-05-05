@@ -5,7 +5,7 @@ FROM flink:1.20.1
 ARG TARGETARCH
 
 # Set correct Temurin JDK 11 download URL based on arch
-ENV TEMURIN_BASE_URL=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.22%2B7
+ENV TEMURIN_BASE_URL=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.27%2B6
 ENV TEMURIN_JDK_AMD64=OpenJDK11U-jdk_x64_linux_hotspot_11.0.27_6.tar.gz
 ENV TEMURIN_JDK_AMD64_CHECKSUM=dc6136eaa8c1898cbf8973bb1e203e1f653f4c9166be0f5bebe0b02c5f3b5ae3
 ENV TEMURIN_JDK_ARM64=OpenJDK11U-jdk_aarch64_linux_hotspot_11.0.27_6.tar.gz
