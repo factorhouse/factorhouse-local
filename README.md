@@ -579,7 +579,7 @@ _(Note: `mc` does not expose ports to the host)_
 2. [Flink SQL Client](./quickstart/flink-sql-client.md)  
    Uses the [Flink Faker](https://github.com/knaufk/flink-faker) connector to simulate streaming data with randomized fields. Demonstrates creating a mock `orders` table and running a tumbling window Top-N query to identify top suppliers, showcasing real-time Flink SQL analytics.
 
-3. [Flink SQL Gateway](./quickstart/flink_sql_gateway.py)  
+3. [Flink SQL Gateway](./quickstart/flink_sql_gateway.md)  
    A Python script that interacts with Flink SQL Gateway via REST API using `urllib3`. It automates session handling, statement submission (e.g., with `datagen`), and paginated result fetching, enabling programmatic control over Flink SQL.
 
 4. [Flink Parquet Sink](./quickstart/flink-sql-sink-parquet.md)  
