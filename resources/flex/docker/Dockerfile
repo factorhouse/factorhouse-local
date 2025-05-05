@@ -26,8 +26,8 @@ RUN set -eux; \
     # Map Docker's TARGETARCH to Temurin's arch names
     case "$TARGETARCH" in \
         'amd64') \
-            TEMURIN_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_x64_alpine-linux_hotspot_17.0.15_6.tar.gz"; \
-            TEMURIN_CHECKSUM="c596f5c627f84cd801bd7a443cd0743304a6aabb7397e0fdbfad16a9517f7f98"; \
+            TEMURIN_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_x64_linux_hotspot_17.0.15_6.tar.gz"; \
+            TEMURIN_CHECKSUM="9616877c733c9249328ea9bd83a5c8c30e0f9a7af180cac8ffda9034161c2df2"; \
             TEMURIN_ARCH='x64'; \
             ;; \
         'arm64') \
