@@ -26,13 +26,13 @@ RUN set -eux; \
     # Map Docker's TARGETARCH to Temurin's arch names
     case "$TARGETARCH" in \
         'amd64') \
-            TEMURIN_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9/OpenJDK17U-jdk_x64_linux_hotspot_17.0.9_9.tar.gz"; \
-            TEMURIN_CHECKSUM="00ff61a5f6a05c72f02f7a5d3bb184e1b4f3e75d4e4a9151e8b7025e6090c47d"; \
+            TEMURIN_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_x64_alpine-linux_hotspot_17.0.15_6.tar.gz"; \
+            TEMURIN_CHECKSUM="c596f5c627f84cd801bd7a443cd0743304a6aabb7397e0fdbfad16a9517f7f98"; \
             TEMURIN_ARCH='x64'; \
             ;; \
         'arm64') \
-            TEMURIN_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9/OpenJDK17U-jdk_aarch64_linux_hotspot_17.0.9_9.tar.gz"; \
-            TEMURIN_CHECKSUM="00ff61a5f6a05c72f02f7a5d3bb184e1b4f3e75d4e4a9151e8b7025e6090c47d"; \
+            TEMURIN_URL="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_aarch64_linux_hotspot_17.0.15_6.tar.gz"; \
+            TEMURIN_CHECKSUM="0db0d6cbe33238f33aa52837b1dc8fc6067b34d206b3e0f9243c7f8c9b9539a5"; \
             TEMURIN_ARCH='aarch64'; \
             ;; \
         *) \
@@ -41,7 +41,7 @@ RUN set -eux; \
             ;; \
     esac; \
     # Download, verify checksum, and extract
-    echo "Downloading Temurin JDK 17.0.9_9 for $TEMURIN_ARCH from $TEMURIN_URL"; \
+    echo "Downloading Temurin JDK 17.0.15_6 for $TEMURIN_ARCH from $TEMURIN_URL"; \
     curl -fL -o /tmp/openjdk.tar.gz "$TEMURIN_URL"; \
     echo "$TEMURIN_CHECKSUM /tmp/openjdk.tar.gz" | sha256sum -c -; \
     mkdir -p /opt/java; \
