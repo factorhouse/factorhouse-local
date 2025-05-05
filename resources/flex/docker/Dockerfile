@@ -1,5 +1,7 @@
 FROM flink:1.20.1
 
+# TARGETARCH is automatically provided by Docker buildx.
+# - 'amd64', 'arm64', etc.
 ARG TARGETARCH
 
 # Set correct Temurin JDK 11 download URL based on arch

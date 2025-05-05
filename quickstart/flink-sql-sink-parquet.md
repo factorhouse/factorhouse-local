@@ -49,7 +49,7 @@ CREATE TABLE orders_sink(
     supplier STRING
 ) PARTITIONED BY (bid_date, bid_hour, bid_minute) WITH (
     'connector' = 'filesystem',
-    'path' = 's3a://factorhouse/orders/',
+    'path' = 's3a://fh-dev-bucket/orders/',
     'format' = 'parquet',
     'sink.partition-commit.delay' = '1 min',
     'sink.partition-commit.policy.kind' = 'success-file',

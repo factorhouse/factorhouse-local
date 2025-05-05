@@ -64,10 +64,10 @@ services:
       /usr/bin/mc rm -r --force minio/warehouse;
       /usr/bin/mc mb minio/warehouse;
       /usr/bin/mc policy set public minio/warehouse;
-      # create factorhouse bucket for general purposes
-      /usr/bin/mc rm -r --force minio/factorhouse;
-      /usr/bin/mc mb minio/factorhouse;
-      /usr/bin/mc policy set public minio/factorhouse;
+      # create fh-dev-bucket bucket for general purposes
+      /usr/bin/mc rm -r --force minio/fh-dev-bucket;
+      /usr/bin/mc mb minio/fh-dev-bucket;
+      /usr/bin/mc policy set public minio/fh-dev-bucket;
       tail -f /dev/null
       "
     depends_on:
@@ -78,6 +78,8 @@ services:
     command: ["postgres", "-c", "wal_level=logical"]
     ports:
       - 5432:5432
+    networks:
+      - factorhouse
     volumes:
       - ./resources/analytics/postgres:/docker-entrypoint-initdb.d
     environment:

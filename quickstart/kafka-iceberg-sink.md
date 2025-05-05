@@ -2,7 +2,17 @@
 
 ### Prerequisites
 
-1. Create kafka topics using `kafka-msk-datagen.json`.
+We'll use two Kafka connectors.
+
+- MSK Data Generator
+- Kafka Iceberg Sink Connector
+
+![](../images/kafka-iceberg-sink-1.png)
+
+1. Create kafka topics by importing [`kafka-msk-datagen.json`](./kafka-msk-datagen.json).
+
+![](../images/kafka-iceberg-sink-2.png)
+
 2. Create the target Iceberg table.
 
 ```bash
@@ -22,16 +32,16 @@ USING iceberg;
 
 Check the iceberg table on MinIO.
 
-![iceberg-table](../images/kafka-iceberg-sink-1.png)
+![iceberg-table](../images/kafka-iceberg-sink-3.png)
 
 ### Deploy Iceberg Sink Connector
 
-- Use `kafka-iceberg-sink.json`
+- Similar to the source connector, the Iceberg sink connector can be created by importing [`kafka-iceberg-sink.json`](./kafka-iceberg-sink.json)
 
 The sink connector can be shown on Kpow.
 
-![sink-connector](../images/kafka-iceberg-sink-2.png)
+![sink-connector](../images/kafka-iceberg-sink-4.png)
 
 Also, the records are intested into MinIO.
 
-![iceberg-records](../images/kafka-iceberg-sink-3.png)
+![iceberg-records](../images/kafka-iceberg-sink-5.png)
