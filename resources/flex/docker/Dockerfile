@@ -17,12 +17,10 @@ RUN curl -fsSL https://github.com/adoptium/temurin17-binaries/releases/download/
 # Set JAVA_HOME and update PATH
 ENV JAVA_HOME=/opt/temurin
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
+RUN java -version && javac -version
 
 ## install PyFlink
 RUN pip3 install apache-flink==1.20.1
-
-## Verify Java and PyFlink installation
-RUN java -version && javac -version && python3 -m apache_flink.__version__
 
 ## copy s3 file system plugins plugins
 RUN mkdir /opt/flink/plugins/s3-fs-hadoop \
