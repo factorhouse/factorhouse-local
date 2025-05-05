@@ -6,8 +6,11 @@ ARG TARGETARCH
 
 # Set correct Temurin JDK 11 download URL based on arch
 ENV TEMURIN_BASE_URL=https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.22%2B7
-ENV TEMURIN_JDK_AMD64=OpenJDK11U-jdk_x64_linux_hotspot_11.0.22_7.tar.gz
-ENV TEMURIN_JDK_ARM64=OpenJDK11U-jdk_aarch64_linux_hotspot_11.0.22_7.tar.gz
+ENV TEMURIN_JDK_AMD64=OpenJDK11U-jdk_x64_linux_hotspot_11.0.27_6.tar.gz
+ENV TEMURIN_JDK_AMD64_CHECKSUM=dc6136eaa8c1898cbf8973bb1e203e1f653f4c9166be0f5bebe0b02c5f3b5ae3
+ENV TEMURIN_JDK_ARM64=OpenJDK11U-jdk_aarch64_linux_hotspot_11.0.27_6.tar.gz
+ENV TEMURIN_JDK_ARM64_CHECKSUM=4decd2e5caf4667144091cf723458b14148dc990730b3ecb34bba5eb1aa4ad5d
+
 
 # Install dependencies and Python tools
 RUN apt-get update -y \
@@ -18,12 +21,15 @@ RUN apt-get update -y \
     curl \
     build-essential \
     ca-certificates \
-    coreutils \
   && ln -s /usr/bin/python3 /usr/bin/python \
-  # Download and extract the appropriate JDK
+  # Download and extract the appropriate JDK with checksum verification
   && mkdir -p /opt/java \
-  && curl -fsSL ${TEMURIN_BASE_URL}/$(if [ "$TARGETARCH" = "arm64" ]; then echo $TEMURIN_JDK_ARM64; else echo $TEMURIN_JDK_AMD64; fi) \
-     | tar -xz -C /opt/java --strip-components=1 \
+  && JDK_FILE=$(if [ "$TARGETARCH" = "arm64" ]; then echo "$TEMURIN_JDK_ARM64"; else echo "$TEMURIN_JDK_AMD64"; fi) \
+  && CHECKSUM=$(if [ "$TARGETARCH" = "arm64" ]; then echo "$TEMURIN_JDK_ARM64_CHECKSUM"; else echo "$TEMURIN_JDK_AMD64_CHECKSUM"; fi) \
+  && curl -fsSL "${TEMURIN_BASE_URL}/${JDK_FILE}" -o /tmp/openjdk.tar.gz \
+  && echo "${CHECKSUM}  /tmp/openjdk.tar.gz" | sha256sum -c - \
+  && tar -xz -C /opt/java --strip-components=1 -f /tmp/openjdk.tar.gz \
+  && rm -f /tmp/openjdk.tar.gz \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
