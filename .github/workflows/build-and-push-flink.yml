@@ -30,7 +30,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Validate and Build Factorhouse Flink Docker Images
+      - name: Build and Push Factorhouse Flink Docker Images
         run: |
           IMAGE_TAG="${{ github.event.inputs.image_tag }}"
           .github/workflows/scripts/validate-image-tag.sh "$IMAGE_TAG"

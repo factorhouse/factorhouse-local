@@ -1,9 +1,12 @@
 FROM flink:1.20.1
 
-## install python3 and pip3
+# Install Python, pip, and JDK 17 headers (required for arm64)
 RUN apt-get update -y \
-  && apt-get install -y python3 python3-pip python3-dev && rm -rf /var/lib/apt/lists/*
-RUN ln -s /usr/bin/python3 /usr/bin/python
+  && apt-get install -y \
+     python3 python3-pip python3-dev \
+     openjdk-17-jdk-headless \
+  && ln -s /usr/bin/python3 /usr/bin/python \
+  && rm -rf /var/lib/apt/lists/*
 
 ## install PyFlink
 RUN pip3 install apache-flink==1.20.1
