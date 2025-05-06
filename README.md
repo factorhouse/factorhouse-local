@@ -594,33 +594,115 @@ _(Note: `mc` does not expose ports to the host)_
 7. [Pinot Analytics](./quickstart/pinot-analytics.md)  
    Walks through table creation, batch ingestion, and analytical querying in Apache Pinot. A `baseballStats` table is set up using schema and config files, data is loaded via ingestion job, and queries are run to aggregate and display player stats.
 
-## Dependency Configuration for Flink SQL Client and SQL Gateway
+## Custom Flink Docker Image: `factorhouse/flink`
 
-The `factorhouse/flink` Docker image comes pre-packaged with essential JAR dependencies required for interacting with Hadoop filesystems (HDFS, S3A, etc.), processing Parquet files, and managing Apache Iceberg tables. However, by default, the Flink SQL Client and SQL Gateway services only automatically load JARs located directly within the standard `/opt/flink/lib` directory.
+This Docker image provides a customized, multi-architecture (**amd64**, **arm64**) Apache Flink environment based on the LTS release (`flink:1.20.1` as of May 2015). It's specifically tailored for running Flink jobs, including PyFlink and Flink SQL, with out-of-the-box support for common data ecosystem components like S3, Apache Iceberg, and Parquet. It can be found in DockerHub ([LINK](https://hub.docker.com/r/factorhouse/flink)).
 
-Since the necessary Hadoop, Parquet, and Iceberg JARs are intentionally placed in dedicated directories within the image (e.g., `/tmp/hadoop/`, `/tmp/iceberg/`, `/tmp/parquet/`), they are **not included** in the default classpath of these services. To ensure these critical dependencies are correctly loaded at runtime for use by the SQL Client and Gateway, you **must** configure the following environment variable:
+### Key Features:
 
-- `CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"`
+- **Flink Version:** Apache Flink `1.20.1`.
+- **Java Runtime:** Uses **Adoptium Temurin OpenJDK 11** (`11.0.27+6`), installed in `/opt/java`. The appropriate architecture version is downloaded and verified during the build. `JAVA_HOME` is set accordingly.
+  - _Note:_ This specific JDK setup is necessary for reliably building PyFlink dependencies on `arm64` architectures.
+- **Python Support:**
+  - Python 3, `pip`, and essential build tools are installed.
+  - **PyFlink** (`apache-flink` package) version `1.20.1`, matching the Flink release, is installed via pip.
+- **Bundled Dependencies:** Includes pre-downloaded JAR files for common Flink SQL use cases, placed in dedicated directories:
+  - `/tmp/hadoop/`: Hadoop 3.3.6 core, HDFS client, MapReduce client, Auth, AWS connector (`hadoop-aws`), and necessary dependencies (Woodstox, Jackson, Guava, AWS SDK Bundle, etc.).
+  - `/tmp/iceberg/`: Apache Iceberg 1.8.1 runtime for Flink 1.20 (`iceberg-flink-runtime-1.20`) and the AWS bundle (`iceberg-aws-bundle`).
+  - `/tmp/parquet/`: Flink SQL Parquet format connector (`flink-sql-parquet`) version 1.20.1.
+- **S3 Filesystem Plugins:** The standard Flink S3 filesystem connectors (`flink-s3-fs-hadoop` and `flink-s3-fs-presto`) are copied into the `/opt/flink/plugins/` directory for easy activation.
+- **Custom Flink Scripts:** Core Flink startup scripts (`config.sh`, `flink-console.sh`, `flink-daemon.sh`, `sql-client.sh`) located in `/opt/flink/bin/` have been **replaced with custom versions**. These scripts enable the custom dependency loading mechanism described below.
+- **Custom Hadoop Configuration:** A `core-site.xml` file is copied to `/opt/hadoop/etc/hadoop/`, allowing for pre-configuration of Hadoop/S3 settings (e.g., S3 endpoints, credentials providers via `HADOOP_CONF_DIR`).
 
-Setting `CUSTOM_JARS_DIRS` instructs Flink to scan these additional specified directories and load any JAR files found within them, thereby making the required classes available for SQL operations involving these technologies. Without this environment variable explicitly set, only the core Flink JARs residing in `/opt/flink/lib` are loaded, and attempts to use Hadoop, Parquet, or Iceberg connectors and formats via SQL would likely result in `ClassNotFound` or orther related errors.
+### Important: Custom Dependency Loading for SQL Client/Gateway
 
-Note that this environment variable is configured by default. If you intend to submit with your own application (as a Uber fat jar), comment it out in all Flink services (JobManager, TaskManager, and optionally SQL Gateway).
+The `factorhouse/flink` image simplifies using Flink SQL with common formats and filesystems by pre-packaging essential JARs (Hadoop, Iceberg, Parquet). However, these JARs reside in `/tmp/*` directories, **not** in the standard `/opt/flink/lib` directory scanned by default by the Flink SQL Client and SQL Gateway.
 
-**Without CUSTOM_JARS_DIRS**
+To bridge this gap, this image utilizes a **custom class loading mechanism** implemented via the modified Flink scripts in `/opt/flink/bin/`.
 
-```log
-Starting Job Manager
-Classpath Output:
-/opt/flink/lib/flink-cep-1.20.1.jar:/opt/flink/lib/flink-connector-files-1.20.1.jar:/opt/flink/lib/flink-csv-1.20.1.jar:/opt/flink/lib/flink-json-1.20.1.jar:/opt/flink/lib/flink-scala_2.12-1.20.1.jar:/opt/flink/lib/flink-table-api-java-uber-1.20.1.jar:/opt/flink/lib/flink-table-planner-loader-1.20.1.jar:/opt/flink/lib/flink-table-runtime-1.20.1.jar:/opt/flink/lib/log4j-1.2-api-2.17.1.jar:/opt/flink/lib/log4j-api-2.17.1.jar:/opt/flink/lib/log4j-core-2.17.1.jar:/opt/flink/lib/log4j-slf4j-impl-2.17.1.jar:/opt/flink/lib/flink-dist-1.20.1.jar
+**How it Works:**
+
+1.  The custom startup scripts check for the presence of the environment variable `CUSTOM_JARS_DIRS`.
+2.  If `CUSTOM_JARS_DIRS` is set, the scripts scan the specified directories (separated by semicolons `;`) and add any found JAR files to the Flink classpath before launching the service (JobManager, TaskManager, SQL Client, SQL Gateway).
+
+**Default Configuration:**
+
+This image is designed to work out-of-the-box for SQL Client/Gateway scenarios involving the bundled dependencies. This is typically achieved by setting the environment variable in the Flink Docker Compose files: `compose-flex-trial.yml` and `compose-flex-community.yml`:
+
+```yaml
+x-common-environment: &flink_common_env_vars
+  AWS_REGION: us-east-1
+  HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+  CUSTOM_JARS_DIRS: "/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+
+services:
+  jobmanager:
+    image: factorhouse/flink:latest
+    container_name: jobmanager
+    pull_policy: always
+    command: jobmanager
+    ports:
+      - "8082:8081"
+    networks:
+      - factorhouse
+    environment:
+      <<: *flink_common_env_vars
+    volumes:
+      - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
+      - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
+      - ./resources/flex/connector:/tmp/connector
 ```
 
-**With CUSTOM_JARS_DIRS**
+Setting **CUSTOM_JARS_DIRS** as shown ensures the Hadoop, Iceberg, and Parquet JARs are loaded when needed by the SQL Client or Gateway.
 
-```log
-Starting Job Manager
-[INFO] Added custom JARs from /tmp/hadoop
-[INFO] Added custom JARs from /tmp/iceberg
-[INFO] Added custom JARs from /tmp/parquet
-Classpath Output:
-/opt/flink/lib/flink-cep-1.20.1.jar:/opt/flink/lib/flink-connector-files-1.20.1.jar:/opt/flink/lib/flink-csv-1.20.1.jar:/opt/flink/lib/flink-json-1.20.1.jar:/opt/flink/lib/flink-scala_2.12-1.20.1.jar:/opt/flink/lib/flink-table-api-java-uber-1.20.1.jar:/opt/flink/lib/flink-table-planner-loader-1.20.1.jar:/opt/flink/lib/flink-table-runtime-1.20.1.jar:/opt/flink/lib/log4j-1.2-api-2.17.1.jar:/opt/flink/lib/log4j-api-2.17.1.jar:/opt/flink/lib/log4j-core-2.17.1.jar:/opt/flink/lib/log4j-slf4j-impl-2.17.1.jar:/tmp/hadoop/stax2-api-4.2.1.jar:/tmp/hadoop/hadoop-shaded-guava-1.1.1.jar:/tmp/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/tmp/hadoop/commons-configuration2-2.8.0.jar:/tmp/hadoop/hadoop-auth-3.3.6.jar:/tmp/hadoop/hadoop-mapreduce-client-core-3.3.6.jar:/tmp/hadoop/woodstox-core-6.5.1.jar:/tmp/hadoop/hadoop-aws-3.3.6.jar:/tmp/hadoop/hadoop-common-3.3.6.jar:/tmp/hadoop/hadoop-hdfs-client-3.3.6.jar:/tmp/iceberg/iceberg-aws-bundle-1.8.1.jar:/tmp/iceberg/iceberg-flink-runtime-1.20-1.8.1.jar:/tmp/parquet/flink-sql-parquet-1.20.1.jar:/opt/flink/lib/flink-dist-1.20.1.jar
-```
+**Verifying Classpath Loading:**
+
+You can observe the difference in the classpath reported in the logs:
+
+1. With **CUSTOM_JARS_DIRS** Set (Default recommended for SQL Client/Gateway):
+
+   ```yaml
+   x-common-environment: &flink_common_env_vars
+     AWS_REGION: us-east-1
+     HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+     CUSTOM_JARS_DIRS: "/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+   ```
+
+   JobManager Log Output:
+
+   ```log
+   Starting Job Manager
+   [INFO] Added custom JARs from /tmp/hadoop
+   [INFO] Added custom JARs from /tmp/iceberg
+   [INFO] Added custom JARs from /tmp/parquet
+   Classpath Output:
+   /opt/flink/lib/flink-cep-1.20.1.jar:/opt/flink/lib/flink-connector-files-1.20.1.jar:/opt/flink/lib/flink-csv-1.20.1.jar:/opt/flink/lib/flink-json-1.20.1.jar:/opt/flink/lib/flink-scala_2.12-1.20.1.jar:/opt/flink/lib/flink-table-api-java-uber-1.20.1.jar:/opt/flink/lib/flink-table-planner-loader-1.20.1.jar:/opt/flink/lib/flink-table-runtime-1.20.1.jar:/opt/flink/lib/log4j-1.2-api-2.17.1.jar:/opt/flink/lib/log4j-api-2.17.1.jar:/opt/flink/lib/log4j-core-2.17.1.jar:/opt/flink/lib/log4j-slf4j-impl-2.17.1.jar:/tmp/hadoop/stax2-api-4.2.1.jar:/tmp/hadoop/hadoop-shaded-guava-1.1.1.jar:/tmp/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/tmp/hadoop/commons-configuration2-2.8.0.jar:/tmp/hadoop/hadoop-auth-3.3.6.jar:/tmp/hadoop/hadoop-mapreduce-client-core-3.3.6.jar:/tmp/hadoop/woodstox-core-6.5.1.jar:/tmp/hadoop/hadoop-aws-3.3.6.jar:/tmp/hadoop/hadoop-common-3.3.6.jar:/tmp/hadoop/hadoop-hdfs-client-3.3.6.jar:/tmp/iceberg/iceberg-aws-bundle-1.8.1.jar:/tmp/iceberg/iceberg-flink-runtime-1.20-1.8.1.jar:/tmp/parquet/flink-sql-parquet-1.20.1.jar:/opt/flink/lib/flink-dist-1.20.1.jar
+   ...
+   ```
+
+2. Without **CUSTOM_JARS_DIRS** Set (e.g., Commented Out):
+
+   ```yaml
+   x-common-environment: &flink_common_env_vars
+     AWS_REGION: us-east-1
+     #HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+     #CUSTOM_JARS_DIRS: "/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+   ```
+
+   JobManager Log Output:
+
+   ```log
+   Starting Job Manager
+   Classpath Output:
+   /opt/flink/lib/flink-cep-1.20.1.jar:/opt/flink/lib/flink-connector-files-1.20.1.jar:/opt/flink/lib/flink-csv-1.20.1.jar:/opt/flink/lib/flink-json-1.20.1.jar:/opt/flink/lib/flink-scala_2.12-1.20.1.jar:/opt/flink/lib/flink-table-api-java-uber-1.20.1.jar:/opt/flink/lib/flink-table-planner-loader-1.20.1.jar:/opt/flink/lib/flink-table-runtime-1.20.1.jar:/opt/flink/lib/log4j-1.2-api-2.17.1.jar:/opt/flink/lib/log4j-api-2.17.1.jar:/opt/flink/lib/log4j-core-2.17.1.jar:/opt/flink/lib/log4j-slf4j-impl-2.17.1.jar:/opt/flink/lib/flink-dist-1.20.1.jar
+   ```
+
+## Support
+
+Any issues? Contact [support](https://factorhouse.io/support/) or view our [docs](https://docs.factorhouse.io/kpow-ce/).
+
+## License
+
+This repository is released under the Apache 2.0 License.
+
+Copyright © Factor House.
