@@ -25,6 +25,7 @@ services:
   connect:
     image: confluentinc/cp-kafka-connect:7.8.0
     container_name: connect
+    restart: unless-stopped
     depends_on:
       - zookeeper
       - kafka-1
@@ -51,6 +52,12 @@ services:
       AWS_REGION: us-east-1 # for iceberg sink
     volumes:
       - ./resources/kpow/connector:/etc/kafka-connect/jars
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
 
   kpow:
     image: factorhouse/kpow-ce:latest
