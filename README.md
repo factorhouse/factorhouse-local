@@ -10,7 +10,7 @@ We provide several pre-configured Docker Compose environments to showcase differ
 
 <details>
 
-<summary><b>Kafka Development & Monitoring Stack with Kpow</b></summary>
+<summary><b>Kafka Development & Monitoring with Kpow</b></summary>
 
 <br>
 
@@ -95,7 +95,7 @@ It's ideal for scenarios involving **event-driven architectures, microservices c
 
 <details>
 
-<summary><b>Real-Time Stream Analytics Stack with Flink + Flex</b></summary>
+<summary><b>Real-Time Stream Analytics with Flink + Flex</b></summary>
 
 <br>
 
@@ -166,7 +166,7 @@ It is designed for use cases that go beyond traditional batch or lakehouse proce
 
 <details>
 
-<summary><b>Analytics & Lakehouse Stack: Spark, Iceberg, MinIO & Postgres</b></summary>
+<summary><b>Analytics & Lakehouse: Spark, Iceberg, MinIO & Postgres</b></summary>
 
 <br>
 
@@ -370,6 +370,18 @@ The Following Connectors are downloaded and made available.
 
 ### Update Kpow and Flex Licenses
 
+Both **Kpow** and **Flex** require valid licenses to run. You can get started in one of two ways:
+
+- Request a free **Community License** for non-commercial use:
+
+  - [Kpow Community License](https://factorhouse.io/kpow/community/)
+  - [Flex Community License](https://factorhouse.io/flex/community/)
+
+- Or request a **30-day Trial License** for commercial evaluation - **this license unlocks all enterprise features**:
+
+  - [Kpow Trial License](https://factorhouse.io/kpow/get-started/)
+  - [Flex Trial License](https://factorhouse.io/flex/get-started/)
+
 For managing Kpow and Flex licenses effectively, it's strongly recommended to store the license files **externally** from your main configuration or version control system (like Git). This approach prevents accidental exposure of sensitive license details and makes updating or swapping licenses much simpler.
 
 The Docker Compose files facilitates this by allowing you to specify the path to your license file using **environment variables** on your host machine _before_ launching the services. Specifically, they are configured to look for these variables and use their values to locate the appropriate license file via the `env_file` directive. If an environment variable is not set, a default path (usually within the `resources` directory) is used as a fallback.
@@ -454,25 +466,29 @@ There are two primary methods for launching the various Docker Compose stacks (K
 
 ```bash
 ## Method 1
-# Kpow Enterprise
+# Kpow/Flex Enterprise
 docker compose -p kpow -f compose-kpow-trial.yml up -d \
   && docker compose -p flex -f compose-flex-trial.yml up -d \
   && docker compose -p analytics -f compose-analytics.yml up -d \
   && docker compose -p pinot -f compose-pinot.yml up -d
 
-# Kpow Community
+# Kpow/Flex Community
 docker compose -p kpow -f compose-kpow-community.yml up -d \
-  && docker compose -p flex -f compose-flex-trial.yml up -d \
+  && docker compose -p flex -f compose-flex-community.yml up -d \
   && docker compose -p analytics -f compose-analytics.yml up -d \
   && docker compose -p pinot -f compose-pinot.yml up -d
 
 ## Method 2
 # Kpow Enterprise
-docker compose -f compose-kpow-trial.yml up -d
+docker/Flex compose -f compose-kpow-trial.yml up -d
+# Flex Enterprise
+USE_EXT=false docker compose -f compose-flex-trial.yml up -d
+
 # Kpow Community
 docker compose -f compose-kpow-trial.yml up -d
-
+# Flex Community
 USE_EXT=false docker compose -f compose-flex-trial.yml up -d
+
 USE_EXT=false docker compose -p analytics -f compose-analytics.yml up -d
 # Pinot cannot be started on its own because it depends on the Zookeeper service in the Kpow stack
 ```
@@ -486,25 +502,29 @@ Likewise, there are two methods for stopping and removing the containers and Doc
 
 ```bash
 ## Method 1
-# Kpow Enterprise
+# Kpow/Flex Enterprise
 docker compose -p pinot -f compose-pinot.yml down \
   && docker compose -p analytics -f compose-analytics.yml down \
   && docker compose -p flex -f compose-flex-trial.yml down \
   && docker compose -p kpow -f compose-kpow-trial.yml down
 
-# Kpow Community
+# Kpow/Flex Community
 docker compose -p pinot -f compose-pinot.yml down \
   && docker compose -p analytics -f compose-analytics.yml down \
-  && docker compose -p flex -f compose-flex-trial.yml down \
+  && docker compose -p flex -f compose-flex-community.yml down \
   && docker compose -p kpow -f compose-kpow-community.yml down
 
 ## Method 2
 # Kpow Enterprise
 docker compose -f compose-kpow-trial.yml down
+# Flex Enterprise
+USE_EXT=false docker compose -f compose-flex-trial.yml down
+
 # Kpow Community
 docker compose -f compose-kpow-community.yml down
+# Flex Community
+USE_EXT=false docker compose -f compose-flex-community.yml down
 
-USE_EXT=false docker compose -f compose-flex-trial.yml down
 USE_EXT=false docker compose -p analytics -f compose-analytics.yml down
 ```
 
