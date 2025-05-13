@@ -719,7 +719,7 @@ You can observe the difference in the classpath reported in the logs:
 
 ## Support
 
-Any issues? Contact [support](https://factorhouse.io/support/) or view our [docs](https://docs.factorhouse.io/kpow-ce/).
+Any issues? Contact [support](https://factorhouse.io/support/) or view our [docs](https://docs.factorhouse.io/).
 
 ## License
 
