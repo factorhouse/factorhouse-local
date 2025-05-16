@@ -520,9 +520,9 @@ docker compose -f compose-kpow-trial.yml up -d
 USE_EXT=false docker compose -f compose-flex-trial.yml up -d
 
 # Kpow Community
-docker compose -f compose-kpow-trial.yml up -d
+docker compose -f compose-kpow-community.yml up -d
 # Flex Community
-USE_EXT=false docker compose -f compose-flex-trial.yml up -d
+USE_EXT=false docker compose -f compose-flex-community.yml up -d
 
 USE_EXT=false docker compose -p analytics -f compose-analytics.yml up -d
 # Pinot cannot be started on its own because it depends on the Zookeeper service in the Kpow stack
