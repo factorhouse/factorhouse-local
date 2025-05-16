@@ -28,15 +28,32 @@ It's ideal for scenarios involving **event-driven architectures, microservices c
 
 #### 🚀 Kpow (Kafka Management & Monitoring Toolkit)
 
-- Container: `factorhouse/kpow:latest`
-- Provides a rich web UI for comprehensive Kafka monitoring, management, and data inspection. Features include:
-  - **Real-time cluster/broker/topic metrics**
-  - **Consumer lag monitoring**
-  - **Data browse/search capabilities**
-  - **Schema Registry integration**
-  - **Kafka Connect cluster management**
-  - **RBAC + JAAS** support via volume mounts
-  - Trial license support via `env_file`
+- Container: `factorhouse/kpow:latest` (ee) or `factorhouse/kpow-ce:latest` (ce)
+- An engineering toolkit providing a rich web UI for comprehensive Kafka monitoring, management, and data inspection. Kpow gathers Kafka resource information, stores it locally in internal topics, and delivers custom telemetry and insights. Features include:
+  - **Comprehensive Real-time Kafka Resource Monitoring:**
+    - Instant visibility ("X-Ray vision") of brokers, topics, consumer groups, partitions, offsets, and more.
+    - Gathers data every minute, with a "Live mode" for real-time updates.
+    - No JMX access required.
+  - **Advanced Consumer and Streams Monitoring (Compute Console):**
+    - Visualize message throughput and lag for consumers (and soon, Kafka Streams topologies).
+    - Multi-dimensional consumer lag insights from custom derived telemetry.
+    - Ability to reset consumption at group, host, member, topic, or assignment level.
+  - **Deep Data Inspection with kJQ:**
+    - Powerful JQ-like querying (kJQ) to search tens of thousands of messages per second.
+    - Supports JSON, Apache Avro®, Transit, EDN, and Protobuf messages (with custom serdes for Protobuf to JSON).
+  - **Schema Registry Integration:** Full support for controlling and monitoring Schema Registries.
+  - **Kafka Connect Cluster Management:** Full support for controlling and monitoring Kafka Connect clusters.
+  - **Enterprise-Grade Security & Governance:**
+    - **Authentication:** Supports DB, File, LDAP, SAML, or OpenID configurations.
+    - **Authorization:** Simple or Role-Based Access Controls (RBAC). The original summary also mentioned JAAS, often paired with RBAC and configured via volume mounts (_Enterprise edition (ee) only_).
+    - **Data Policies:** Includes capabilities for masking and redaction of sensitive data (e.g., PII, Credit Card).
+    - **Audit Logging:** All user actions are captured in the Kpow audit log.
+  - **Key Integrations & Deployment Features:**
+    - **Slack Integration:** Sends user actions to an operations channel.
+    - **Prometheus Endpoints:** For integration with preferred metrics and alerting systems.
+    - **HTTPS Support:** Easily configured with your own certificates or via a reverse-proxy.
+    - **Multi-Cluster Monitoring:** Manage multiple Kafka clusters from a single Kpow installation.
+    - **Air-Gapped Environments:** Well-suited due to all data being stored in local Kafka topics.
 - Exposes UI at `http://localhost:3000`
 
 #### 🧠 Kafka Cluster (3 Brokers + Zookeeper)
@@ -99,13 +116,13 @@ It's ideal for scenarios involving **event-driven architectures, microservices c
 
 <br>
 
-This stack provides a high-performance **streaming analytics platform** built around Apache Flink, designed for **real-time data processing, enrichment, joins**, and SQL-based interactions. It includes [**Flex**](https://factorhouse.io/flex) (a secure, enterprise-enhanced Flink layer), Flink JobManager/TaskManagers, and an interactive **SQL Gateway**.
+This stack delivers a high-performance **streaming analytics solution** centered on Apache Flink, tailored for **low-latency processing, complex event enrichment, joins**, and SQL-driven operations. It features [**Flex**](https://factorhouse.io/flex), a secure enterprise-grade tool for Flink, along with Flink JobManager/TaskManagers and a **SQL Gateway** for multi-client SQL execution.
 
 ### 📌 Description
 
-This architecture is built to support **streaming-first workloads**—ideal for scenarios where **low latency**, **event-time processing**, and **complex data enrichment** are required. With Flex, it brings RBAC, SQL gateway access, and plug-and-play stream processing.
+This architecture is built to support **streaming-first workloads**, making it ideal for scenarios demanding low-latency event-time processing and complex data enrichment. Leveraging the power of Apache Flink, and enhanced by Flex's enterprise features, it provides robust RBAC, accessible SQL gateway operations, and streamlined plug-and-play stream processing capabilities.
 
-It is designed for use cases that go beyond traditional batch or lakehouse processing—especially suited for **operational intelligence, fraud detection, observability, and real-time metrics pipelines**.
+It is designed for **dynamic, real-time applications**, proving especially effective for **operational intelligence**, **advanced fraud detection**, **comprehensive system observability**, and the development of **responsive real-time metrics pipelines**.
 
 ---
 
@@ -113,11 +130,27 @@ It is designed for use cases that go beyond traditional batch or lakehouse proce
 
 #### 🚀 Flex (Enterprise Flink Runtime)
 
-- Container: `factorhouse/flex:latest`
-- Enhanced Flink SQL gateway with support for:
-  - **RBAC + JAAS**
-  - Pre-configured connector mounts
-  - Trial license support via `env_file`
+- Container: `factorhouse/flex:latest` (ee) (Inferred from previous context and "Enterprise" focus)
+- Provides an enterprise-ready tooling solution to streamline and simplify Apache Flink management. It gathers Flink resource information, offering custom telemetry, insights, and a rich data-oriented UI. Key features include:
+  - **Comprehensive Flink Monitoring & Insights:**
+    - Gathers Flink resource information minute-by-minute.
+    - Offers fully integrated metrics and telemetry.
+    - Provides access to long-term metrics and aggregated consumption/production data, from cluster-level down to individual job-level details.
+  - **Simplified Management for All User Groups:**
+    - User-friendly interface and intuitive controls.
+    - Aims to align business needs with Flink capabilities.
+  - **Enterprise-Grade Security & Governance:**
+    - **Versatile Authentication:** Supports DB, File, LDAP, SAML, OpenID, Okta, and Keycloak.
+    - **Robust Authorization:** Offers Simple or fine-grained Role-Based Access Controls (RBAC).
+    - **Data Policies:** Includes capabilities for masking and redaction of sensitive data (e.g., PII, Credit Card).
+    - **Audit Logging:** Captures all user actions for comprehensive data governance.
+    - **Secure Deployments:** Supports HTTPS and is designed for air-gapped environments (all data remains local).
+  - **Powerful Flink Enhancements:**
+    - **Multi-tenancy:** Advanced capabilities to manage Flink resources effectively with control over visibility and usage.
+    - **Multi-Cluster Monitoring:** Manage and monitor multiple Flink clusters from a single installation.
+  - **Key Integrations:**
+    - **Prometheus:** Exposes endpoints for integration with preferred metrics and alerting systems.
+    - **Slack:** Allows user actions to be sent to an operations channel in real-time.
 - Exposes UI at `http://localhost:3001`
 
 #### 🧠 Flink Cluster
@@ -159,7 +192,7 @@ It is designed for use cases that go beyond traditional batch or lakehouse proce
 
 #### Real-Time Data Lake Writes
 
-- Use Flink’s native Iceberg integration to write out structured, evolving tables in real time.
+- Use Flink's native Iceberg integration to write out structured, evolving tables in real time.
 - Lakehouse-friendly, works well with batch processors (e.g., Spark) downstream.
 
 </details>
@@ -265,7 +298,7 @@ This stack deploys a basic **Apache Pinot** cluster, a real-time distributed **O
 
 This architecture provides the foundation for ingesting data from batch (e.g., HDFS, S3) or streaming sources (e.g., Kafka) and making it available for analytical queries with response times often in milliseconds. Pinot is optimized for user-facing analytics, real-time dashboards, anomaly detection, and other scenarios requiring fast insights on fresh data.
 
-**Note:** This configuration requires an external Apache Zookeeper instance running at `zookeeper:2181` on the `factorhouse` network for cluster coordination, which is not defined within this specific file.
+**Note:** This configuration requires an external Apache Zookeeper instance running at `zookeeper:2181` on the `factorhouse` network for cluster coordination, which is not defined within the Docker Compose file.
 
 ---
 
@@ -410,7 +443,6 @@ docker compose -p kpow -f compose-kpow-community.yml up -d
 <summary>License file example</summary>
 
 ```
-### Your License Details
 LICENSE_ID=<license-id>
 LICENSE_CODE=<license-code>
 LICENSEE=<licensee>
@@ -434,25 +466,28 @@ services:
       - ${KPOW_TRIAL_LICENSE:-resources/kpow/config/trial-license.env}
 
 # compose-kpow-community.yml
-
 services:
-kpow:
-...
-env_file: - resources/kpow/config/community.env - ${KPOW_COMMUNITY_LICENSE:-resources/kpow/config/community-license.env}
+  kpow:
+    ...
+    env_file:
+      - resources/kpow/config/community.env
+      - ${KPOW_COMMUNITY_LICENSE:-resources/kpow/config/community-license.env}
 
 # compose-flex-trial.yml
-
 services:
-flex:
-...
-env_file: - resources/flex/config/trial.env - ${FLEX_TRIAL_LICENSE:-resources/flex/config/trial-license.env}
+  flex:
+  ...
+  env_file:
+    - resources/flex/config/trial.env
+    - ${FLEX_TRIAL_LICENSE:-resources/flex/config/trial-license.env}
 
 # compose-flex-trial.yml
-
 services:
-flex:
-...
-env_file: - resources/flex/config/local-community.env - ${KPOW_COMMUNITY_LICENSE:-resources/flex/config/community-license.env}
+  flex:
+  ...
+  env_file:
+    - resources/flex/config/local-community.env
+    - ${KPOW_COMMUNITY_LICENSE:-resources/flex/config/community-license.env}
 ```
 
 </details>
@@ -550,7 +585,7 @@ After successful authentication, users are redirected to the **Overview** page.
 
 The following sections show key services and their associated port mappings.
 
-### Kafka with Kpow Stack
+### Kafka with Kpow
 
 | Service Name | Port(s) (Host:Container) | Description                                               |
 | :----------- | :----------------------- | :-------------------------------------------------------- |
@@ -562,7 +597,7 @@ The following sections show key services and their associated port mappings.
 | `kafka-2`    | `9093:9093`              | Kafka Broker 2 (message broker instance)                  |
 | `kafka-3`    | `9094:9094`              | Kafka Broker 3 (message broker instance)                  |
 
-### Flink with Flex Stack
+### Flink with Flex
 
 | Service Name  | Port(s) (Host:Container) | Description                                                       |
 | :------------ | :----------------------- | :---------------------------------------------------------------- |
@@ -572,7 +607,7 @@ The following sections show key services and their associated port mappings.
 
 _(Note: `taskmanager-1`, `taskmanager-2`, `taskmanager-3` do not expose ports to the host)_
 
-### Analytics & Lakehouse Stack
+### Analytics & Lakehouse
 
 | Service Name    | Port(s) (Host:Container)                                     | Description                                                               |
 | :-------------- | :----------------------------------------------------------- | :------------------------------------------------------------------------ |
@@ -583,7 +618,7 @@ _(Note: `taskmanager-1`, `taskmanager-2`, `taskmanager-3` do not expose ports to
 
 _(Note: `mc` does not expose ports to the host)_
 
-### Apache Pinot Stack
+### Apache Pinot OLAP
 
 | Service Name       | Port(s) (Host:Container) | Description                                                 |
 | :----------------- | :----------------------- | :---------------------------------------------------------- |
@@ -614,13 +649,13 @@ _(Note: `mc` does not expose ports to the host)_
 7. [Pinot Analytics](./quickstart/pinot-analytics.md)  
    Walks through table creation, batch ingestion, and analytical querying in Apache Pinot. A `baseballStats` table is set up using schema and config files, data is loaded via ingestion job, and queries are run to aggregate and display player stats.
 
-## Custom Flink Docker Image: `factorhouse/flink`
+## Custom Flink Docker Image
 
-This Docker image provides a customized, multi-architecture (**amd64**, **arm64**) Apache Flink environment based on the LTS release (`flink:1.20.1` as of May 2015). It's specifically tailored for running Flink jobs, including PyFlink and Flink SQL, with out-of-the-box support for common data ecosystem components like S3, Apache Iceberg, and Parquet. It can be found in DockerHub ([LINK](https://hub.docker.com/r/factorhouse/flink)).
+We provide a custom Docker image ([`factorhouse/flink`](https://hub.docker.com/r/factorhouse/flink)) - a multi-architecture (**amd64**, **arm64**) Apache Flink environment based on the LTS release (`flink:1.20.1` as of May 2025). This image is specially optimized for running Flink jobs, including PyFlink and Flink SQL, and comes with out-of-the-box support for key data ecosystem components such as S3, Hadoop, Apache Iceberg, and Parquet.
 
 ### Key Features:
 
-- **Flink Version:** Apache Flink `1.20.1`.
+- **Flink Version:** Apache Flink LTS (`1.20.1`).
 - **Java Runtime:** Uses **Adoptium Temurin OpenJDK 11** (`11.0.27+6`), installed in `/opt/java`. The appropriate architecture version is downloaded and verified during the build. `JAVA_HOME` is set accordingly.
   - _Note:_ This specific JDK setup is necessary for reliably building PyFlink dependencies on `arm64` architectures.
 - **Python Support:**
