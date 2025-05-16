@@ -515,7 +515,7 @@ docker compose -p kpow -f compose-kpow-community.yml up -d \
 
 ## Method 2
 # Kpow Enterprise
-docker/Flex compose -f compose-kpow-trial.yml up -d
+docker compose -f compose-kpow-trial.yml up -d
 # Flex Enterprise
 USE_EXT=false docker compose -f compose-flex-trial.yml up -d
 
