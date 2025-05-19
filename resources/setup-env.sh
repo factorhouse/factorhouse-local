@@ -46,11 +46,3 @@ curl --silent -o $FLINK_CONNECTOR_PATH/flink-sql-connector-kafka-3.3.0-1.20.jar 
 
 curl --silent -L -o $FLINK_CONNECTOR_PATH/flink-faker-0.5.3.jar \
   https://github.com/knaufk/flink-faker/releases/download/v0.5.3/flink-faker-0.5.3.jar
-
-####
-#### Build a custom Flink image
-####
-FLINK_DOCKER_FILE_PATH=$SCRIPT_PATH/flex/docker
-
-echo "building a custom docker image (factorhouse/flink) ..."
-docker build --quiet -f $FLINK_DOCKER_FILE_PATH/Dockerfile -t factorhouse/flink $FLINK_DOCKER_FILE_PATH
