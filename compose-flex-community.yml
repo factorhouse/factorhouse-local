@@ -12,7 +12,7 @@ services:
       jobmanager:
         condition: service_healthy
     env_file:
-      - resources/flex/config/local-community.env
+      - resources/flex/config/community.env
       - ${KPOW_COMMUNITY_LICENSE:-resources/flex/config/community-license.env}
     mem_limit: 2G
 
