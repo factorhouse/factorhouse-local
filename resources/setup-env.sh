@@ -40,9 +40,12 @@ curl --silent -L -o $KAFKA_CONNECTOR_PATH/iceberg.zip \
 #### Download Flink connectors
 ####
 
-echo "downloading flink connectors ..."
+echo "downloading flink connectors and format dependencies..."
 curl --silent -o $FLINK_CONNECTOR_PATH/flink-sql-connector-kafka-3.3.0-1.20.jar \
   https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.3.0-1.20/flink-sql-connector-kafka-3.3.0-1.20.jar
+
+curl --silent -o $FLINK_CONNECTOR_PATH/flink-sql-avro-confluent-registry-1.20.1.jar \
+  https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-avro-confluent-registry/1.20.1/flink-sql-avro-confluent-registry-1.20.1.jar
 
 curl --silent -L -o $FLINK_CONNECTOR_PATH/flink-faker-0.5.3.jar \
   https://github.com/knaufk/flink-faker/releases/download/v0.5.3/flink-faker-0.5.3.jar
