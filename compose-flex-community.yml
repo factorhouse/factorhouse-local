@@ -1,3 +1,8 @@
+x-common-environment: &flink_common_env_vars
+  AWS_REGION: us-east-1
+  HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+  CUSTOM_JARS_DIRS: "/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+
 services:
   flex:
     image: factorhouse/flex-ce:latest
@@ -13,7 +18,7 @@ services:
         condition: service_healthy
     env_file:
       - resources/flex/config/community.env
-      - ${KPOW_COMMUNITY_LICENSE:-resources/flex/config/community-license.env}
+      - ${FLEX_COMMUNITY_LICENSE:-resources/flex/config/community-license.env}
     mem_limit: 2G
 
   jobmanager:
@@ -26,9 +31,7 @@ services:
     networks:
       - factorhouse
     environment:
-      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
-      - AWS_REGION=us-east-1
-      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+      <<: *flink_common_env_vars
     volumes:
       - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
       - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
@@ -50,9 +53,7 @@ services:
       jobmanager:
         condition: service_healthy
     environment:
-      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
-      - AWS_REGION=us-east-1
-      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+      <<: *flink_common_env_vars
     volumes:
       - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
       - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
@@ -69,9 +70,7 @@ services:
       jobmanager:
         condition: service_healthy
     environment:
-      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
-      - AWS_REGION=us-east-1
-      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+      <<: *flink_common_env_vars
     volumes:
       - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
       - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
@@ -88,9 +87,7 @@ services:
       jobmanager:
         condition: service_healthy
     environment:
-      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
-      - AWS_REGION=us-east-1
-      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+      <<: *flink_common_env_vars
     volumes:
       - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
       - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
@@ -115,11 +112,9 @@ services:
       jobmanager:
         condition: service_healthy
     environment:
-      - FLINK_SQL_GATEWAY_DEFAULT_CATALOG_NAME=default_catalog
-      - FLINK_SQL_GATEWAY_DEFAULT_DATABASE_NAME=default_database
-      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
-      - AWS_REGION=us-east-1
-      - CUSTOM_JARS_DIRS="/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+      FLINK_SQL_GATEWAY_DEFAULT_CATALOG_NAME: default_catalog
+      FLINK_SQL_GATEWAY_DEFAULT_DATABASE_NAME: default_database
+      <<: *flink_common_env_vars
     volumes:
       - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
       - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
