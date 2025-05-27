@@ -4,10 +4,11 @@
 SCRIPT_PATH="$(cd $(dirname "$0"); pwd)"
 KAFKA_CONNECTOR_PATH=$SCRIPT_PATH/kpow/connector
 FLINK_CONNECTOR_PATH=$SCRIPT_PATH/flex/connector
+SPARK_ICEBERG_PATH=$SCRIPT_PATH/analytics/jars
 
 #### Recreate existing connector paths
-rm -rf $KAFKA_CONNECTOR_PATH && rm -rf $FLINK_CONNECTOR_PATH
-mkdir $KAFKA_CONNECTOR_PATH && mkdir $FLINK_CONNECTOR_PATH
+rm -rf $KAFKA_CONNECTOR_PATH && rm -rf $FLINK_CONNECTOR_PATH && rm -rf $SPARK_ICEBERG_PATH
+mkdir $KAFKA_CONNECTOR_PATH && mkdir $FLINK_CONNECTOR_PATH && mkdir $SPARK_ICEBERG_PATH
 
 ####
 #### Download Kafka connectors
@@ -39,7 +40,6 @@ curl --silent -L -o $KAFKA_CONNECTOR_PATH/iceberg.zip \
 ####
 #### Download Flink connectors
 ####
-
 echo "downloading flink connectors and format dependencies..."
 curl --silent -o $FLINK_CONNECTOR_PATH/flink-sql-connector-kafka-3.3.0-1.20.jar \
   https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.3.0-1.20/flink-sql-connector-kafka-3.3.0-1.20.jar
@@ -49,3 +49,14 @@ curl --silent -o $FLINK_CONNECTOR_PATH/flink-sql-avro-confluent-registry-1.20.1.
 
 curl --silent -L -o $FLINK_CONNECTOR_PATH/flink-faker-0.5.3.jar \
   https://github.com/knaufk/flink-faker/releases/download/v0.5.3/flink-faker-0.5.3.jar
+
+
+####
+#### Download Spark Iceberg dependencies
+####
+echo "downloading spark iceberg dependencies..."
+curl --silent -o $SPARK_ICEBERG_PATH/iceberg-spark-runtime-3.5_2.12-1.8.1.jar \
+  https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/1.8.1/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
+
+curl --silent -o $SPARK_ICEBERG_PATH/iceberg-aws-bundle-1.8.1.jar \
+  https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.8.1/iceberg-aws-bundle-1.8.1.jar

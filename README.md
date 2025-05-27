@@ -398,7 +398,8 @@ The Following Connectors are downloaded and made available.
 ./resources/setup-env.sh
 
 # downloading kafka connectors ...
-# downloading flink connectors ...
+# downloading flink connectors and format dependencies...
+# downloading spark iceberg dependencies...
 ```
 
 ### Update Kpow and Flex Licenses
@@ -609,12 +610,12 @@ _(Note: `taskmanager-1`, `taskmanager-2`, `taskmanager-3` do not expose ports to
 
 ### Analytics & Lakehouse
 
-| Service Name    | Port(s) (Host:Container)                                     | Description                                                               |
-| :-------------- | :----------------------------------------------------------- | :------------------------------------------------------------------------ |
-| `spark-iceberg` | `8888:8888`,<br>`8080:8080`,<br>`10000:10000`, `10001:10001` | 8888: Jupyter Server<br>8080: Spark Web UI<br>10000/1 Spark Thrift Server |
-| `rest`          | `8181:8181`                                                  | Apache Iceberg REST Catalog Service                                       |
-| `minio`         | `9001:9001`, `9000:9000`                                     | MinIO S3 Object Storage (9000: API, 9001: Console UI)                     |
-| `postgres`      | `5432:5432`                                                  | PostgreSQL Database Server                                                |
+| Service Name    | Port(s) (Host:Container)      | Description                                           |
+| :-------------- | :---------------------------- | :---------------------------------------------------- |
+| `spark-iceberg` | `4040:4040`,<br>`18080:18080` | Spark Web UI<br>Spark History Server                  |
+| `rest`          | `8181:8181`                   | Apache Iceberg REST Catalog Service                   |
+| `minio`         | `9001:9001`, `9000:9000`      | MinIO S3 Object Storage (9000: API, 9001: Console UI) |
+| `postgres`      | `5432:5432`                   | PostgreSQL Database Server                            |
 
 _(Note: `mc` does not expose ports to the host)_
 

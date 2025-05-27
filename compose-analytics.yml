@@ -1,21 +1,28 @@
 services:
-  spark-iceberg:
-    image: tabulario/spark-iceberg:3.5.5_1.8.1
+  spark:
+    image: apache/spark:3.5.5-java17-python3
     container_name: spark-iceberg
+    command: >
+      bash -c "
+      mkdir -p /tmp/spark-events &&
+      /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer \
+        --properties-file /tmp/spark-defaults-history.conf"
     ports:
-      - 8888:8888 # jupyter notebook server
-      - 8080:8080 # spark web UI
-      # - 10000:10000 # enable if using spark thrift server (default binary mode)
-      # - 10001:10001 # enable if using spark thrift server (potential http mode)
+      - "4040:4040" # Spark Web UI
+      - "18080:18080" # Spark History Server
     networks:
       - factorhouse
     depends_on:
       - rest
       - minio
     volumes:
-      - ./resources/analytics/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-      - ./resources/analytics/spark/log4j2.properties:/opt/spark/conf/log4j2.properties
+      - ./resources/analytics/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./resources/analytics/spark/spark-defaults-history.conf:/tmp/spark-defaults-history.conf:ro
+      - ./resources/analytics/spark/log4j2.properties:/opt/spark/conf/log4j2.properties:ro
+      - ./resources/analytics/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar:/opt/spark/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
+      - ./resources/analytics/jars/iceberg-aws-bundle-1.8.1.jar:/opt/spark/jars/iceberg-aws-bundle-1.8.1.jar
     environment:
+      - SPARK_NO_DAEMONIZE=true
       - AWS_ACCESS_KEY_ID=admin
       - AWS_SECRET_ACCESS_KEY=password
       - AWS_REGION=us-east-1
@@ -72,22 +79,22 @@ services:
       "
     depends_on:
       - minio
-  postgres:
-    image: postgres:17
-    container_name: postgres
-    command: ["postgres", "-c", "wal_level=logical"]
-    ports:
-      - 5432:5432
-    networks:
-      - factorhouse
-    volumes:
-      - ./resources/analytics/postgres:/docker-entrypoint-initdb.d
-    environment:
-      POSTGRES_DB: factorhouse
-      POSTGRES_USER: db_user
-      POSTGRES_PASSWORD: db_password
-      PGUSER: db_user
-      TZ: UTC # change if necessary eg) Australia/Melbourne
+  # postgres:
+  #   image: postgres:17
+  #   container_name: postgres
+  #   command: ["postgres", "-c", "wal_level=logical"]
+  #   ports:
+  #     - 5432:5432
+  #   networks:
+  #     - factorhouse
+  #   volumes:
+  #     - ./resources/analytics/postgres:/docker-entrypoint-initdb.d
+  #   environment:
+  #     POSTGRES_DB: factorhouse
+  #     POSTGRES_USER: db_user
+  #     POSTGRES_PASSWORD: db_password
+  #     PGUSER: db_user
+  #     TZ: UTC # change if necessary eg) Australia/Melbourne
 
 networks:
   factorhouse:
