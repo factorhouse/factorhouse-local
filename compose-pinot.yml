@@ -12,10 +12,9 @@ services:
       JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms512M -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-controller.log"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9000/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 10
   pinot-broker:
     image: apachepinot/pinot:1.2.0
     command: "StartBroker -zkAddress zookeeper:2181"
@@ -32,10 +31,9 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8099/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 10
   pinot-server:
     image: apachepinot/pinot:1.2.0
     command: "StartServer -zkAddress zookeeper:2181"
@@ -46,7 +44,9 @@ services:
     networks:
       - factorhouse
     environment:
-      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms2G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log"
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms2G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log -Dlog4j.configurationFile=file:/opt/pinot/conf/log4j2.properties"
+    volumes:
+      - ./resources/analytics/pinot/log4j2.properties:/opt/pinot/conf/log4j2.properties
     depends_on:
       pinot-broker:
         condition: service_healthy
@@ -56,10 +56,9 @@ services:
           "CMD-SHELL",
           "curl -f http://localhost:8097/health/readiness || exit 1",
         ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 networks:
   factorhouse:
