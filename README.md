@@ -373,7 +373,9 @@ Get a fast and practical start with our new **Factor House Local labs**. These h
 
 Each lab is designed to be modular, hands-on, and production-inspired, helping you learn, prototype, and extend your data platform skills.
 
-**[➡️ Click Here to Explore the Labs](https://github.com/factorhouse/examples/tree/main/fh-local-labs)**
+<strong>➡️ Click Here to Explore the Labs</strong> <a href="https://github.com/factorhouse/examples/tree/main/fh-local-labs" target="_blank" rel="noopener noreferrer"><strong>the Labs</strong></a> to explore detailed walkthroughs, configuration examples, and practical exercises that will help you get up and running quickly with each tool in a real-world context.
+
+<a href="https://github.com/factorhouse/examples/tree/main/fh-local-labs" target="_blank" rel="noopener noreferrer"><strong>➡️ Click Here to Explore the Labs</strong></a>
 
 </div>
 
