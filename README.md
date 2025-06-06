@@ -361,6 +361,22 @@ This architecture provides the foundation for ingesting data from batch (e.g., H
 
 ---
 
+<div align="center">
+
+## 🚀 New: Factor House Local Labs! 🚀
+
+Get a fast and practical start with our new **Factor House Local labs**. These hands-on labs provide detailed walkthroughs for building real-time data pipelines using **Kafka**, **Flink**, **Spark**, **Iceberg**, and **Pinot**.
+
+<a href="https://github.com/factorhouse/examples/tree/main/fh-local-labs" target="_blank" rel="noopener noreferrer">
+  <img src="./images/fh-local-labs.png" alt="Factor House Local Labs" width="600"/>
+</a>
+
+Each lab is designed to be modular, hands-on, and production-inspired, helping you learn, prototype, and extend your data platform skills.
+
+**[➡️ Click Here to Explore the Labs](https://github.com/factorhouse/examples/tree/main/fh-local-labs)**
+
+</div>
+
 ## Prerequisites
 
 ### Install Docker
@@ -381,9 +397,9 @@ git clone git@github.com:factorhouse/factorhouse-local.git
 cd factorhouse-local
 ```
 
-### Download Kafka and Flink Connectors
+### Download Kafka/Flink Connectors and Spark Iceberg Dependencies
 
-The Following Connectors are downloaded and made available.
+The following Kafka/Flink connectors and Spark Iceberg dependency JAR files are downloaded and made available for use:
 
 - **Kafka**
   - [Confulent S3 Sink Connector](https://docs.confluent.io/kafka-connectors/s3-sink/current/overview.html)
@@ -393,6 +409,9 @@ The Following Connectors are downloaded and made available.
 - **Flink**
   - [Apache Kafka SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/table/kafka/)
   - [Flink Facker Connector](https://github.com/knaufk/flink-faker)
+- **Iceberg**
+  - [Iceberg Spark Runtime](https://iceberg.apache.org/docs/latest/spark-getting-started/)
+  - [Iceberg AWS Bundle](https://iceberg.apache.org/docs/latest/aws/)
 
 ```bash
 ./resources/setup-env.sh
@@ -627,29 +646,6 @@ _(Note: `mc` does not expose ports to the host)_
 | `pinot-broker`     | `18099:8099`             | Apache Pinot Broker (handles query routing and results)     |
 | `pinot-server`     | `18098:8098`             | Apache Pinot Server (hosts data segments, executes queries) |
 
-## QuickStart Examples
-
-1. [Kafka Iceberg Sink](./quickstart/kafka-iceberg-sink.md)  
-   Streams data from Kafka into an Apache Iceberg table stored in MinIO. Topics are created, an Iceberg table is defined via Spark SQL, and the Iceberg Sink Connector is deployed and monitored using **Kpow**. Ingested records are validated in the MinIO-backed Iceberg table.
-
-2. [Flink SQL Client](./quickstart/flink-sql-client.md)  
-   Uses the [Flink Faker](https://github.com/knaufk/flink-faker) connector to simulate streaming data with randomized fields. Demonstrates creating a mock `orders` table and running a tumbling window Top-N query to identify top suppliers, showcasing real-time Flink SQL analytics.
-
-3. [Flink SQL Gateway](./quickstart/flink_sql_gateway.md)  
-   A Python script that interacts with Flink SQL Gateway via REST API using `urllib3`. It automates session handling, statement submission (e.g., with `datagen`), and paginated result fetching, enabling programmatic control over Flink SQL.
-
-4. [Flink Parquet Sink](./quickstart/flink-sql-sink-parquet.md)  
-   Shows how to write streaming data to Parquet files in MinIO using Flink SQL. Synthetic data is generated via Flink Faker, partitioned by time, and stored using the filesystem connector. Checkpointing ensures reliability; results are visualized with **Flex**.
-
-5. [Flink Iceberg Sink](./quickstart/flink-sql-sink-iceberg.md)  
-   Demonstrates setting up an Iceberg catalog on MinIO and creating a Parquet-backed `db.users` table. Sample records are inserted and queried via Flink SQL, validating the use of Iceberg as a Flink table sink with S3-compatible storage.
-
-6. [Spark SQL Iceberg](./quickstart/spark-sql-iceberg.md)  
-   Illustrates using Spark SQL with an Iceberg catalog. After verifying the `demo` catalog, a `db.users` table is created and queried, confirming successful data insertion and storage in MinIO through Iceberg.
-
-7. [Pinot Analytics](./quickstart/pinot-analytics.md)  
-   Walks through table creation, batch ingestion, and analytical querying in Apache Pinot. A `baseballStats` table is set up using schema and config files, data is loaded via ingestion job, and queries are run to aggregate and display player stats.
-
 ## Custom Flink Docker Image
 
 We provide a custom Docker image ([`factorhouse/flink`](https://hub.docker.com/r/factorhouse/flink)) - a multi-architecture (**amd64**, **arm64**) Apache Flink environment based on the LTS release (`flink:1.20.1` as of May 2025). This image is specially optimized for running Flink jobs, including PyFlink and Flink SQL, and comes with out-of-the-box support for key data ecosystem components such as S3, Hadoop, Apache Iceberg, and Parquet.
@@ -670,7 +666,7 @@ We provide a custom Docker image ([`factorhouse/flink`](https://hub.docker.com/r
 - **Custom Flink Scripts:** Core Flink startup scripts (`config.sh`, `flink-console.sh`, `flink-daemon.sh`, `sql-client.sh`) located in `/opt/flink/bin/` have been **replaced with custom versions**. These scripts enable the custom dependency loading mechanism described below.
 - **Custom Hadoop Configuration:** A `core-site.xml` file is copied to `/opt/hadoop/etc/hadoop/`, allowing for pre-configuration of Hadoop/S3 settings (e.g., S3 endpoints, credentials providers via `HADOOP_CONF_DIR`).
 
-### Important: Custom Dependency Loading for SQL Client/Gateway
+### 📌 Custom Dependency Loading for SQL Client/Gateway
 
 The `factorhouse/flink` image simplifies using Flink SQL with common formats and filesystems by pre-packaging essential JARs (Hadoop, Iceberg, Parquet). However, these JARs reside in `/tmp/*` directories, **not** in the standard `/opt/flink/lib` directory scanned by default by the Flink SQL Client and SQL Gateway.
 
