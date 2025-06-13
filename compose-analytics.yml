@@ -79,22 +79,22 @@ services:
       "
     depends_on:
       - minio
-  # postgres:
-  #   image: postgres:17
-  #   container_name: postgres
-  #   command: ["postgres", "-c", "wal_level=logical"]
-  #   ports:
-  #     - 5432:5432
-  #   networks:
-  #     - factorhouse
-  #   volumes:
-  #     - ./resources/analytics/postgres:/docker-entrypoint-initdb.d
-  #   environment:
-  #     POSTGRES_DB: factorhouse
-  #     POSTGRES_USER: db_user
-  #     POSTGRES_PASSWORD: db_password
-  #     PGUSER: db_user
-  #     TZ: UTC # change if necessary eg) Australia/Melbourne
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    command: ["postgres", "-c", "wal_level=logical"]
+    ports:
+      - 5432:5432
+    networks:
+      - factorhouse
+    volumes:
+      - ./resources/analytics/postgres:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_DB: factorhouse
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_password
+      PGUSER: db_user
+      TZ: UTC # change if necessary eg) Australia/Melbourne
 
 networks:
   factorhouse:
