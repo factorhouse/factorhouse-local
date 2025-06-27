@@ -1,0 +1,37 @@
+<configuration>
+  <!-- Metastore DB connection -->
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:postgresql://postgres:5432/metastore</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>org.postgresql.Driver</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>db_user</value>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value>db_password</value>
+  </property>
+  <!-- Required Datanucleus settings -->
+  <property>
+    <name>datanucleus.autoCreateSchema</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>datanucleus.fixedDatastore</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>datanucleus.autoStartMechanismMode</name>
+    <value>checked</value>
+  </property>
+  <!-- Hive warehouse on S3 -->
+  <property>
+    <name>hive.metastore.warehouse.dir</name>
+    <value>s3a://warehouse/</value>
+  </property>
+</configuration>

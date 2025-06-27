@@ -51,7 +51,7 @@ services:
       CONNECT_PLUGIN_PATH: /usr/share/java/,/etc/kafka-connect/jars,/etc/kafka-connect/plugins
       AWS_REGION: us-east-1 # for iceberg sink
     volumes:
-      - ./resources/kpow/connector:/etc/kafka-connect/jars
+      - ./resources/jars/kafka/connector:/etc/kafka-connect/jars
       - ./resources/kpow/plugins:/etc/kafka-connect/plugins
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]

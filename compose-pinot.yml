@@ -46,7 +46,7 @@ services:
     environment:
       JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms2G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log -Dlog4j.configurationFile=file:/opt/pinot/conf/log4j2.properties"
     volumes:
-      - ./resources/analytics/pinot/log4j2.properties:/opt/pinot/conf/log4j2.properties
+      - ./resources/pinot/log4j2.properties:/opt/pinot/conf/log4j2.properties
     depends_on:
       pinot-broker:
         condition: service_healthy
