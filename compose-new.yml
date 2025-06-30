@@ -46,38 +46,38 @@ services:
   #     - ./resources/flex/jaas:/etc/flex/jaas
   #     - ./resources/flex/rbac:/etc/flex/rbac
 
-  # jobmanager:
-  #   <<: *flink_image_pull_policy_config
-  #   container_name: jobmanager
-  #   command: jobmanager
-  #   ports:
-  #     - "8082:8081"
-  #   networks:
-  #     - factorhouse
-  #   depends_on:
-  #     hive-metastore:
-  #       condition: service_healthy
-  #   environment:
-  #     <<: *flink_common_env_vars
-  #   volumes: *flink_common_volumes
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8081/config"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 5
+  jobmanager:
+    <<: *flink_image_pull_policy_config
+    container_name: jobmanager
+    command: jobmanager
+    ports:
+      - "8082:8081"
+    networks:
+      - factorhouse
+    depends_on:
+      hive-metastore:
+        condition: service_healthy
+    environment:
+      <<: *flink_common_env_vars
+    volumes: *flink_common_volumes
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/config"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # taskmanager-1:
-  #   <<: *flink_image_pull_policy_config
-  #   container_name: taskmanager-1
-  #   command: taskmanager
-  #   networks:
-  #     - factorhouse
-  #   depends_on:
-  #     jobmanager:
-  #       condition: service_healthy
-  #   environment:
-  #     <<: *flink_common_env_vars
-  #   volumes: *flink_common_volumes
+  taskmanager-1:
+    <<: *flink_image_pull_policy_config
+    container_name: taskmanager-1
+    command: taskmanager
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    environment:
+      <<: *flink_common_env_vars
+    volumes: *flink_common_volumes
 
   # sql-gateway:
   #   <<: *flink_image_pull_policy_config
@@ -195,89 +195,40 @@ services:
       retries: 10
       start_period: 3s
 
-  # spark-master:
-  #   image: bitnami/spark:3.5
-  #   container_name: spark-master
-  #   user: root
-  #   command: >
-  #     bash -c "
-  #       mkdir -p /tmp/spark-events &&
-  #       /opt/bitnami/spark/sbin/start-master.sh -h spark-master"
-  #   ports:
-  #     - "8080:8080"
-  #     - "7077:7077"
-  #   networks:
-  #     - factorhouse
-  #   depends_on:
-  #     hive-metastore:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./resources/spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-  #     - ./resources/spark/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties:ro
-  #     - ./resources/spark/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
-  #     - ./resources/spark/core-site.xml:/opt/bitnami/spark/conf/core-site.xml
-  #     - ./resources/jars/spark/iceberg/iceberg-spark-runtime-3.5_2.12-1.8.1.jar:/opt/bitnami/spark/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
-  #     - ./resources/jars/spark/iceberg/iceberg-aws-bundle-1.8.1.jar:/opt/bitnami/spark/jars/iceberg-aws-bundle-1.8.1.jar
-  #     - ./resources/jars/hadoop/hadoop-aws-3.3.6.jar:/opt/bitnami/spark/jars/hadoop-aws-3.3.6.jar
-  #     - ./resources/jars/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/bitnami/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
-  #     - ./resources/jars/hadoop/hadoop-common-3.3.6.jar:/opt/bitnami/spark/jars/hadoop-common-3.3.6.jar
-  # spark-worker:
-  #   image: bitnami/spark:3.5
-  #   container_name: spark-worker
-  #   user: root
-  #   command: >
-  #     bash -c "
-  #       mkdir -p /tmp/spark-events &&
-  #       /opt/bitnami/spark/sbin/start-worker.sh spark://spark-master:7077"
-  #   networks:
-  #     - factorhouse
-  #   volumes:
-  #     - ./resources/spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-  #     - ./resources/spark/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties:ro
-  #     - ./resources/spark/hive-site.xml:/opt/bitnami/spark/conf/hive-site.xml
-  #     - ./resources/spark/core-site.xml:/opt/bitnami/spark/conf/core-site.xml
-  #     - ./resources/jars/spark/iceberg/iceberg-spark-runtime-3.5_2.12-1.8.1.jar:/opt/bitnami/spark/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
-  #     - ./resources/jars/spark/iceberg/iceberg-aws-bundle-1.8.1.jar:/opt/bitnami/spark/jars/iceberg-aws-bundle-1.8.1.jar
-  #     - ./resources/jars/hadoop/hadoop-aws-3.3.6.jar:/opt/bitnami/spark/jars/hadoop-aws-3.3.6.jar
-  #     - ./resources/jars/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/bitnami/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
-  #     - ./resources/jars/hadoop/hadoop-common-3.3.6.jar:/opt/bitnami/spark/jars/hadoop-common-3.3.6.jar
-  #   depends_on:
-  #     - spark-master
-
-  # spark:
-  #   image: apache/spark:3.5.5-java17-python3
-  #   container_name: spark-iceberg
-  #   pull_policy: never
-  #   command: >
-  #     bash -c "
-  #     mkdir -p /tmp/spark-events &&
-  #     /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer \
-  #       --properties-file /tmp/spark-defaults-history.conf"
-  #   ports:
-  #     - "4040:4040" # Spark Web UI
-  #     - "18080:18080" # Spark History Server
-  #   networks:
-  #     - factorhouse
-  #   depends_on:
-  #     hive-metastore:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./resources/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
-  #     - ./resources/spark/spark-defaults-history.conf:/tmp/spark-defaults-history.conf:ro
-  #     - ./resources/spark/log4j2.properties:/opt/spark/conf/log4j2.properties:ro
-  #     - ./resources/spark/hive-site.xml:/opt/spark/conf/hive-site.xml
-  #     - ./resources/spark/core-site.xml:/opt/spark/conf/core-site.xml
-  #     # Iceberg & Hadoop dependencies
-  #     - ./resources/jars/spark/iceberg/iceberg-spark-runtime-3.5_2.12-1.8.1.jar:/opt/spark/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
-  #     - ./resources/jars/spark/iceberg/iceberg-aws-bundle-1.8.1.jar:/opt/spark/jars/iceberg-aws-bundle-1.8.1.jar
-  #     - ./resources/jars/hadoop/hadoop-aws-3.3.6.jar:/opt/spark/jars/hadoop-aws-3.3.6.jar
-  #     - ./resources/jars/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
-  #     - ./resources/jars/hadoop/hadoop-common-3.3.6.jar:/opt/spark/jars/hadoop-common-3.3.6.jar
-  #   environment:
-  #     - SPARK_NO_DAEMONIZE=true
-  #     - AWS_ACCESS_KEY_ID=admin
-  #     - AWS_SECRET_ACCESS_KEY=password
-  #     - AWS_REGION=us-east-1
+  spark:
+    image: apache/spark:3.5.5-java17-python3
+    container_name: spark-iceberg
+    pull_policy: never
+    command: >
+      bash -c "
+      mkdir -p /tmp/spark-events &&
+      /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer \
+        --properties-file /tmp/spark-defaults-history.conf"
+    ports:
+      - "4040:4040" # Spark Web UI
+      - "18080:18080" # Spark History Server
+    networks:
+      - factorhouse
+    depends_on:
+      hive-metastore:
+        condition: service_healthy
+    volumes:
+      - ./resources/spark/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./resources/spark/spark-defaults-history.conf:/tmp/spark-defaults-history.conf:ro
+      - ./resources/spark/log4j2.properties:/opt/spark/conf/log4j2.properties:ro
+      - ./resources/spark/hive-site.xml:/opt/spark/conf/hive-site.xml
+      - ./resources/spark/core-site.xml:/opt/spark/conf/core-site.xml
+      # Iceberg & Hadoop dependencies
+      - ./resources/jars/spark/iceberg/iceberg-spark-runtime-3.5_2.12-1.8.1.jar:/opt/spark/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
+      - ./resources/jars/spark/iceberg/iceberg-aws-bundle-1.8.1.jar:/opt/spark/jars/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/jars/hadoop/hadoop-aws-3.3.6.jar:/opt/spark/jars/hadoop-aws-3.3.6.jar
+      - ./resources/jars/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
+      - ./resources/jars/hadoop/hadoop-common-3.3.6.jar:/opt/spark/jars/hadoop-common-3.3.6.jar
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
 
 networks:
   factorhouse:
