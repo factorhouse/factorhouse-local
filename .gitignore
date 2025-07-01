@@ -2,4 +2,4 @@
 .vscode
 .idea
 .DS_Store
-/resources/jars*
+/resources/deps*

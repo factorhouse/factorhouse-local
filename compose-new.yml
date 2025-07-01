@@ -18,12 +18,12 @@ x-common-flink-volumes: &flink_common_volumes
   - ./resources/flink/hive-site.xml:/opt/flink/conf/hive-site.xml
   - ./resources/flink/core-site.xml:/opt/flink/conf/core-site.xml
   - ./resources/flink/init-catalogs.sql:/opt/flink/conf/init-catalogs.sql
-  - ./resources/jars/hadoop:/tmp/hadoop
-  - ./resources/jars/flink/hive/flink-sql-connector-hive-3.1.3_2.12-1.20.1.jar:/tmp/hive/flink-sql-connector-hive-3.1.3_2.12-1.20.1.jar
-  - ./resources/jars/flink/hive/antlr-runtime-3.5.2.jar:/tmp/hive/antlr-runtime-3.5.2.jar
-  - ./resources/jars/flink/iceberg:/tmp/iceberg
-  - ./resources/jars/flink/parquet:/tmp/parquet
-  - ./resources/jars/flink/connector:/tmp/connector
+  - ./resources/deps/hadoop:/tmp/hadoop
+  - ./resources/deps/flink/hive/flink-sql-connector-hive-3.1.3_2.12-1.20.1.jar:/tmp/hive/flink-sql-connector-hive-3.1.3_2.12-1.20.1.jar
+  - ./resources/deps/flink/hive/antlr-runtime-3.5.2.jar:/tmp/hive/antlr-runtime-3.5.2.jar
+  - ./resources/deps/flink/iceberg:/tmp/iceberg
+  - ./resources/deps/flink/parquet:/tmp/parquet
+  - ./resources/deps/flink/connector:/tmp/connector
 
 services:
   # flex:
@@ -182,12 +182,12 @@ services:
     volumes:
       - ./resources/hms/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./resources/hms/core-site.xml:/opt/hive/conf/core-site.xml
-      - ./resources/jars/hms/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
-      - ./resources/jars/hadoop/hadoop-common-3.3.6.jar:/opt/hive/lib/hadoop-common-3.3.6.jar
-      - ./resources/jars/hadoop/hadoop-auth-3.3.6.jar:/opt/hive/lib/hadoop-auth-3.3.6.jar
-      - ./resources/jars/hadoop/hadoop-aws-3.3.6.jar:/opt/hive/lib/hadoop-aws-3.3.6.jar
-      - ./resources/jars/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/hive/lib/aws-java-sdk-bundle-1.11.1026.jar
-      - ./resources/jars/hadoop/hadoop-shaded-guava-1.1.1.jar:/opt/hive/lib/hadoop-shaded-guava-1.1.1.jar
+      - ./resources/deps/hms/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
+      - ./resources/deps/hadoop/hadoop-common-3.3.6.jar:/opt/hive/lib/hadoop-common-3.3.6.jar
+      - ./resources/deps/hadoop/hadoop-auth-3.3.6.jar:/opt/hive/lib/hadoop-auth-3.3.6.jar
+      - ./resources/deps/hadoop/hadoop-aws-3.3.6.jar:/opt/hive/lib/hadoop-aws-3.3.6.jar
+      - ./resources/deps/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/hive/lib/aws-java-sdk-bundle-1.11.1026.jar
+      - ./resources/deps/hadoop/hadoop-shaded-guava-1.1.1.jar:/opt/hive/lib/hadoop-shaded-guava-1.1.1.jar
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/9083"]
       interval: 2s
@@ -219,11 +219,11 @@ services:
       - ./resources/spark/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./resources/spark/core-site.xml:/opt/spark/conf/core-site.xml
       # Iceberg & Hadoop dependencies
-      - ./resources/jars/spark/iceberg/iceberg-spark-runtime-3.5_2.12-1.8.1.jar:/opt/spark/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
-      - ./resources/jars/spark/iceberg/iceberg-aws-bundle-1.8.1.jar:/opt/spark/jars/iceberg-aws-bundle-1.8.1.jar
-      - ./resources/jars/hadoop/hadoop-aws-3.3.6.jar:/opt/spark/jars/hadoop-aws-3.3.6.jar
-      - ./resources/jars/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
-      - ./resources/jars/hadoop/hadoop-common-3.3.6.jar:/opt/spark/jars/hadoop-common-3.3.6.jar
+      - ./resources/deps/spark/iceberg/iceberg-spark-runtime-3.5_2.12-1.8.1.jar:/opt/spark/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
+      - ./resources/deps/spark/iceberg/iceberg-aws-bundle-1.8.1.jar:/opt/spark/jars/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/deps/hadoop/hadoop-aws-3.3.6.jar:/opt/spark/jars/hadoop-aws-3.3.6.jar
+      - ./resources/deps/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
+      - ./resources/deps/hadoop/hadoop-common-3.3.6.jar:/opt/spark/jars/hadoop-common-3.3.6.jar
     environment:
       - SPARK_NO_DAEMONIZE=true
       - AWS_ACCESS_KEY_ID=admin

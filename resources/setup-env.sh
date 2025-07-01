@@ -20,7 +20,7 @@ flag_time_taken() {
 
 ### Determine absolute paths for kafka/flink connectors
 SCRIPT_PATH="$(cd $(dirname "$0"); pwd)"
-JAR_PATH=$SCRIPT_PATH/jars
+JAR_PATH=$SCRIPT_PATH/deps
 
 #### Recreate necessary paths
 rm -rf $JAR_PATH \
