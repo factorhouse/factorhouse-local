@@ -1,6 +1,8 @@
 x-common-flink-config: &flink_image_pull_policy_config
-  image: fh-flink-1.20.1
-  build: ./resources/flink/
+  image: fh-flink-1.20.1${FLINK_SUFFIX:-} # ${FLINK_SUFFIX} is either unset (blank) or -py
+  build:
+    context: ./resources/flink/
+    dockerfile: Dockerfile${FLINK_SUFFIX:-}
   pull_policy: never
 
 x-common-environment: &flink_common_env_vars
@@ -26,25 +28,25 @@ x-common-flink-volumes: &flink_common_volumes
   - ./resources/deps/flink/connector:/tmp/connector
 
 services:
-  # flex:
-  #   image: factorhouse/flex:latest
-  #   container_name: flex-ee
-  #   pull_policy: always
-  #   restart: always
-  #   ports:
-  #     - "3001:3000"
-  #   networks:
-  #     - factorhouse
-  #   depends_on:
-  #     jobmanager:
-  #       condition: service_healthy
-  #   env_file:
-  #     - resources/flex/config/trial.env
-  #     - ${FLEX_TRIAL_LICENSE:-resources/flex/config/trial-license.env}
-  #   mem_limit: 2G
-  #   volumes:
-  #     - ./resources/flex/jaas:/etc/flex/jaas
-  #     - ./resources/flex/rbac:/etc/flex/rbac
+  flex:
+    image: factorhouse/flex${FLEX_SUFFIX:-}:latest
+    container_name: flex${FLEX_SUFFIX:-}
+    pull_policy: always
+    restart: always
+    ports:
+      - "3001:3000"
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    env_file:
+      - resources/flex/config/setup.env
+      - ${FLEX_LICENSE:-resources/flex/config/license.env}
+    mem_limit: 2G
+    volumes:
+      - ./resources/flex/jaas:/etc/flex/jaas
+      - ./resources/flex/rbac:/etc/flex/rbac
 
   jobmanager:
     <<: *flink_image_pull_policy_config
@@ -79,28 +81,54 @@ services:
       <<: *flink_common_env_vars
     volumes: *flink_common_volumes
 
-  # sql-gateway:
-  #   <<: *flink_image_pull_policy_config
-  #   container_name: sql-gateway
-  #   command: >
-  #     bin/sql-gateway.sh
-  #     start-foreground
-  #     -Dsql-gateway.endpoint.rest.address=0.0.0.0
-  #     -Dsql-gateway.endpoint.rest.port=9090
-  #     -Djobmanager.rpc.address=jobmanager
-  #     -Drest.address=jobmanager
-  #   ports:
-  #     - "9090:9090"
-  #   networks:
-  #     - factorhouse
-  #   depends_on:
-  #     jobmanager:
-  #       condition: service_healthy
-  #   environment:
-  #     FLINK_SQL_GATEWAY_DEFAULT_CATALOG_NAME: default_catalog
-  #     FLINK_SQL_GATEWAY_DEFAULT_DATABASE_NAME: default_database
-  #     <<: *flink_common_env_vars
-  #   volumes: *flink_common_volumes
+  taskmanager-2:
+    <<: *flink_image_pull_policy_config
+    container_name: taskmanager-2
+    command: taskmanager
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    environment:
+      <<: *flink_common_env_vars
+    volumes: *flink_common_volumes
+
+  taskmanager-3:
+    <<: *flink_image_pull_policy_config
+    container_name: taskmanager-3
+    command: taskmanager
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    environment:
+      <<: *flink_common_env_vars
+    volumes: *flink_common_volumes
+
+  sql-gateway:
+    <<: *flink_image_pull_policy_config
+    container_name: sql-gateway
+    command: >
+      bin/sql-gateway.sh
+      start-foreground
+      -Dsql-gateway.endpoint.rest.address=0.0.0.0
+      -Dsql-gateway.endpoint.rest.port=9090
+      -Djobmanager.rpc.address=jobmanager
+      -Drest.address=jobmanager
+    ports:
+      - "9090:9090"
+    networks:
+      - factorhouse
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+    environment:
+      FLINK_SQL_GATEWAY_DEFAULT_CATALOG_NAME: default_catalog
+      FLINK_SQL_GATEWAY_DEFAULT_DATABASE_NAME: default_database
+      <<: *flink_common_env_vars
+    volumes: *flink_common_volumes
 
   minio:
     image: minio/minio
@@ -152,9 +180,9 @@ services:
     networks:
       - factorhouse
     volumes:
-      - ./resources/flex/postgres:/docker-entrypoint-initdb.d
+      - ./resources/postgres:/docker-entrypoint-initdb.d
     environment:
-      POSTGRES_DB: metastore
+      POSTGRES_DB: fh_dev
       POSTGRES_USER: db_user
       POSTGRES_PASSWORD: db_password
       TZ: UTC # change if necessary eg) Australia/Melbourne

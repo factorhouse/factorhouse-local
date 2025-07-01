@@ -61,8 +61,8 @@ services:
       start_period: 20s
 
   kpow:
-    image: factorhouse/kpow:latest
-    container_name: kpow-ee
+    image: factorhouse/kpow${KPOW_SUFFIX:-}:latest
+    container_name: kpow${KPOW_SUFFIX:-}
     pull_policy: always
     restart: always
     ports:
@@ -74,8 +74,8 @@ services:
       connect:
         condition: service_healthy
     env_file:
-      - resources/kpow/config/trial.env
-      - ${KPOW_TRIAL_LICENSE:-resources/kpow/config/trial-license.env}
+      - resources/kpow/config/setup.env
+      - ${KPOW_LICENSE:-resources/kpow/config/license.env}
     mem_limit: 2G
     volumes:
       - ./resources/kpow/jaas:/etc/kpow/jaas
