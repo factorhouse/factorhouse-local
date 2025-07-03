@@ -60,11 +60,11 @@ curl --silent -L -o $KAFKA_CONNECTOR_PATH/msk-datagen/msk-data-generator.jar \
 ((CURRENT_STEP++)); progress_bar
 
 curl --silent -L -o $KAFKA_CONNECTOR_PATH/iceberg.zip \
-  https://github.com/databricks/iceberg-kafka-connect/releases/download/v0.6.19/iceberg-kafka-connect-runtime-0.6.19.zip \
+  https://github.com/databricks/iceberg-kafka-connect/releases/download/v0.6.19/iceberg-kafka-connect-runtime-hive-0.6.19.zip \
   && unzip -qq $KAFKA_CONNECTOR_PATH/iceberg.zip -d $KAFKA_CONNECTOR_PATH \
-  && mv $KAFKA_CONNECTOR_PATH/iceberg-kafka-connect-runtime-0.6.19/lib $KAFKA_CONNECTOR_PATH/iceberg \
+  && mv $KAFKA_CONNECTOR_PATH/iceberg-kafka-connect-runtime-hive-0.6.19/lib $KAFKA_CONNECTOR_PATH/iceberg \
   && rm $KAFKA_CONNECTOR_PATH/iceberg.zip \
-  && rm -rf $KAFKA_CONNECTOR_PATH/iceberg-kafka-connect-runtime-0.6.19
+  && rm -rf $KAFKA_CONNECTOR_PATH/iceberg-kafka-connect-runtime-hive-0.6.19
 ((CURRENT_STEP++)); progress_bar
 
 flag_time_taken
