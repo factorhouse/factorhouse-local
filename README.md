@@ -116,17 +116,17 @@ It's ideal for scenarios involving **event-driven architectures, microservices c
 
 <br>
 
-This stack builds a comprehensive analytics platform that erases the line between real-time stream analytics and large-scale batch processing. It achieves this by combining the power of Apache Flink and Apache Spark on a unified data lakehouse, enabling you to work with a single source of truth for all your data workloads.
+This stack builds a **comprehensive analytics platform** that erases the line between real-time stream analytics and large-scale batch processing. It achieves this by combining the power of **Apache Flink**, enhanced by [**Flex**](https://factorhouse.io/flex) for enterprise-grade management and monitoring, with **Apache Spark** on a unified data lakehouse, enabling you to work with a single source of truth for all your data workloads.
 
 ### 📌 Description
 
 This architecture is designed around a modern data lakehouse that serves both streaming and batch jobs from the same data. At its foundation, data is stored in Apache Iceberg tables on MinIO, an S3-compatible object store. This provides powerful features like ACID transactions, schema evolution, and time travel for your data.
 
-A central **Hive Metastore** acts as the unified catalog, or "brain," for the entire ecosystem. By using a robust **PostgreSQL** database as its backend, the metastore reliably tracks all table schemas and metadata. This central catalog allows both **Apache Flink** (for low-latency streaming) and **Apache Spark** (for batch ETL and interactive analytics) to discover, query, and write to the same tables seamlessly, eliminating data silos.
+A central **Hive Metastore** serves as a unified metadata catalog for the entire data ecosystem, providing essential information about the structure and location of datasets. By using a robust **PostgreSQL** database as its backend, the metastore reliably tracks all table schemas and metadata. This central catalog allows both **Apache Flink** (for low-latency streaming) and **Apache Spark** (for batch ETL and interactive analytics) to discover, query, and write to the same tables seamlessly, eliminating data silos.
 
 The role of PostgreSQL is twofold: in addition to providing a durable backend for the metastore, it is configured as a high-performance transactional database ready for **Change Data Capture (CDC)**. This design allows you to stream every `INSERT`, `UPDATE`, and `DELETE` from your operational data directly into the lakehouse, keeping it perfectly synchronized in near real-time.
 
-The platform is rounded out by enterprise-grade tooling: **Flex** simplifies Flink management and monitoring, a **Flink SQL Gateway** enables interactive queries on live data streams, and a full **Spark cluster** supports complex data transformations. This integrated environment is ideal for building sophisticated solutions for fraud detection, operational intelligence, and unified business analytics.
+The platform is rounded out by enterprise-grade tooling: **Flex** simplifies Flink management and monitoring, a **Flink SQL Gateway** enables interactive queries on live data streams, and a single node **Spark cluster** supports complex data transformations. This integrated environment is ideal for building sophisticated solutions for fraud detection, operational intelligence, and unified business analytics.
 
 ---
 
@@ -135,7 +135,26 @@ The platform is rounded out by enterprise-grade tooling: **Flex** simplifies Fli
 #### 🚀 Flex (Enterprise Flink Runtime)
 
 - Container: **kpow** from (`factorhouse/flex:latest` (**enterprise**)) or **kpow-ce** from (`factorhouse/flex-ce:latest` (**community**))
-- Provides an enterprise-ready tooling solution to streamline and simplify Apache Flink management. It gathers Flink resource information, offering custom telemetry, insights, and a rich data-oriented UI.
+- Provides an enterprise-ready tooling solution to streamline and simplify Apache Flink management. It gathers Flink resource information, offering custom telemetry, insights, and a rich data-oriented UI. Key features include:
+  - **Comprehensive Flink Monitoring & Insights:**
+    - Gathers Flink resource information minute-by-minute.
+    - Offers fully integrated metrics and telemetry.
+    - Provides access to long-term metrics and aggregated consumption/production data, from cluster-level down to individual job-level details.
+  - **Simplified Management for All User Groups:**
+    - User-friendly interface and intuitive controls.
+    - Aims to align business needs with Flink capabilities.
+  - **Enterprise-Grade Security & Governance:**
+    - **Versatile Authentication:** Supports DB, File, LDAP, SAML, OpenID, Okta, and Keycloak.
+    - **Robust Authorization:** Offers Simple or fine-grained Role-Based Access Controls (RBAC).
+    - **Data Policies:** Includes capabilities for masking and redaction of sensitive data (e.g., PII, Credit Card).
+    - **Audit Logging:** Captures all user actions for comprehensive data governance.
+    - **Secure Deployments:** Supports HTTPS and is designed for air-gapped environments (all data remains local).
+  - **Powerful Flink Enhancements:**
+    - **Multi-tenancy:** Advanced capabilities to manage Flink resources effectively with control over visibility and usage.
+    - **Multi-Cluster Monitoring:** Manage and monitor multiple Flink clusters from a single installation.
+  - **Key Integrations:**
+    - **Prometheus:** Exposes endpoints for integration with preferred metrics and alerting systems.
+    - **Slack:** Allows user actions to be sent to an operations channel in real-time.
 - Exposes UI at `http://localhost:3001`
 
 #### 🧠 Flink Cluster (Real-Time Engine)
@@ -322,11 +341,11 @@ cd factorhouse-local
 
 Core services like Flink, Spark, and Kafka Connect are designed to be modular and do not come bundled with the specific connectors and libraries needed to communicate with other systems like the Hive Metastore, Apache Iceberg, or S3.
 
-`setup-env.sh` automates the process of downloading all the required dependencies and organizing them into a local deps directory. When the services are started with docker-compose, this directory is mounted as a volume, injecting the libraries directly into each container's classpath.
+`setup-env.sh` automates the process of downloading all the required dependencies and organizing them into a local `deps` directory. When the services are started with docker-compose, this directory is mounted as a volume, injecting the libraries directly into each container's classpath.
 
 <details>
 
-<summary><b>The following dependencies are downloaded.</b></summary>
+<summary><b>View all downloaded dependencies</b></summary>
 
 #### Kafka Connectors
 
@@ -428,6 +447,8 @@ export KPOW_LICENSE=/home/<username>/.factorhouse/kpow-license.env
 docker compose -p kpow -f compose-kpow.yml up -d
 ```
 
+> By default, it is configured to deploy the Enterprise edition. See below for instructions on how to configure it to run the Community edition instead.
+
 <details>
 
 <summary>License file example</summary>
@@ -466,7 +487,7 @@ services:
 
 </details>
 
-## Running the Platform with Docker
+## Running the Platform
 
 To get the platform running, you first need to configure your local environment. This involves setting environment variables to select the edition you want to run (Community or Enterprise) and providing the file paths to your licenses. Once these prerequisites are set, you can launch the services using `docker compose`. You have two primary options: you can start all services (Kpow, Flex, and Pinot) together for a fully integrated experience, or you can run Kpow and Flex independently for more focused use cases. When you are finished, remember to run the corresponding `down` command to stop and remove the containers, and unset the environment variables to clean up your session.
 
