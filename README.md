@@ -28,7 +28,7 @@ It's ideal for scenarios involving **event-driven architectures, microservices c
 
 #### 🚀 Kpow (Kafka Management & Monitoring Toolkit)
 
-- Container: `factorhouse/kpow:latest` (ee) or `factorhouse/kpow-ce:latest` (ce)
+- Container: **kpow** from (`factorhouse/kpow:latest` (**enterprise**)) or **kpow-ce** from (`factorhouse/kpow-ce:latest` (**community**))
 - An engineering toolkit providing a rich web UI for comprehensive Kafka monitoring, management, and data inspection. Kpow gathers Kafka resource information, stores it locally in internal topics, and delivers custom telemetry and insights. Features include:
   - **Comprehensive Real-time Kafka Resource Monitoring:**
     - Instant visibility ("X-Ray vision") of brokers, topics, consumer groups, partitions, offsets, and more.
@@ -112,17 +112,21 @@ It's ideal for scenarios involving **event-driven architectures, microservices c
 
 <details>
 
-<summary><b>Real-Time Stream Analytics with Flink + Flex</b></summary>
+<summary><b>Unified Analytics Platform with Flex, Flink, Spark, Iceberg & Hive Metastore</b></summary>
 
 <br>
 
-This stack delivers a high-performance **streaming analytics solution** centered on Apache Flink, tailored for **low-latency processing, complex event enrichment, joins**, and SQL-driven operations. It features [**Flex**](https://factorhouse.io/flex), a secure enterprise-grade tool for Flink, along with Flink JobManager/TaskManagers and a **SQL Gateway** for multi-client SQL execution.
+This stack builds a **comprehensive analytics platform** that erases the line between real-time stream analytics and large-scale batch processing. It achieves this by combining the power of **Apache Flink**, enhanced by [**Flex**](https://factorhouse.io/flex) for enterprise-grade management and monitoring, with **Apache Spark** on a unified data lakehouse, enabling you to work with a single source of truth for all your data workloads.
 
 ### 📌 Description
 
-This architecture is built to support **streaming-first workloads**, making it ideal for scenarios demanding low-latency event-time processing and complex data enrichment. Leveraging the power of Apache Flink, and enhanced by Flex's enterprise features, it provides robust RBAC, accessible SQL gateway operations, and streamlined plug-and-play stream processing capabilities.
+This architecture is designed around a modern data lakehouse that serves both streaming and batch jobs from the same data. At its foundation, data is stored in Apache Iceberg tables on MinIO, an S3-compatible object store. This provides powerful features like ACID transactions, schema evolution, and time travel for your data.
 
-It is designed for **dynamic, real-time applications**, proving especially effective for **operational intelligence**, **advanced fraud detection**, **comprehensive system observability**, and the development of **responsive real-time metrics pipelines**.
+A central **Hive Metastore** serves as a unified metadata catalog for the entire data ecosystem, providing essential information about the structure and location of datasets. By using a robust **PostgreSQL** database as its backend, the metastore reliably tracks all table schemas and metadata. This central catalog allows both **Apache Flink** (for low-latency streaming) and **Apache Spark** (for batch ETL and interactive analytics) to discover, query, and write to the same tables seamlessly, eliminating data silos.
+
+The role of PostgreSQL is twofold: in addition to providing a durable backend for the metastore, it is configured as a high-performance transactional database ready for **Change Data Capture (CDC)**. This design allows you to stream every `INSERT`, `UPDATE`, and `DELETE` from your operational data directly into the lakehouse, keeping it perfectly synchronized in near real-time.
+
+The platform is rounded out by enterprise-grade tooling: **Flex** simplifies Flink management and monitoring, a **Flink SQL Gateway** enables interactive queries on live data streams, and a single node **Spark cluster** supports complex data transformations. This integrated environment is ideal for building sophisticated solutions for fraud detection, operational intelligence, and unified business analytics.
 
 ---
 
@@ -130,7 +134,7 @@ It is designed for **dynamic, real-time applications**, proving especially effec
 
 #### 🚀 Flex (Enterprise Flink Runtime)
 
-- Container: `factorhouse/flex:latest` (ee) (Inferred from previous context and "Enterprise" focus)
+- Container: **kpow** from (`factorhouse/flex:latest` (**enterprise**)) or **kpow-ce** from (`factorhouse/flex-ce:latest` (**community**))
 - Provides an enterprise-ready tooling solution to streamline and simplify Apache Flink management. It gathers Flink resource information, offering custom telemetry, insights, and a rich data-oriented UI. Key features include:
   - **Comprehensive Flink Monitoring & Insights:**
     - Gathers Flink resource information minute-by-minute.
@@ -153,136 +157,72 @@ It is designed for **dynamic, real-time applications**, proving especially effec
     - **Slack:** Allows user actions to be sent to an operations channel in real-time.
 - Exposes UI at `http://localhost:3001`
 
-#### 🧠 Flink Cluster
+#### 🧠 Flink Cluster (Real-Time Engine)
 
-- **JobManager** coordinates all tasks, handles scheduling, checkpoints, and failover.
-  - Healthcheck verifies `/config` for readiness.
-  - Volume mounts for custom Flink config and SQL defaults.
-- **TaskManagers (3 nodes)** run user code and perform actual stream processing.
-  - Horizontally scalable.
-  - Connected to the same config and connector volumes as the JobManager.
+- **JobManager** (`jobmanager`) coordinates all tasks, handles scheduling, checkpoints, and failover. Flink UI is exposed at `http://localhost:8082`.
+- **TaskManagers** (`taskmanager-1`, `-2`, `-3`) run user code and perform actual stream processing.
+- The cluster is configured to use the central **Hive Metastore** for catalog services.
 
-#### 🛠 SQL Gateway
+#### 🛠 Flink SQL Gateway
 
-- REST-accessible endpoint (`http://localhost:9090`) for **interactive Flink SQL queries**.
-- Allows:
-  - Creating, updating, querying tables using Flink SQL
-  - Querying Iceberg, Kafka, JDBC, and custom connectors
-- Configured to run in the foreground for easier debugging.
+- Container: `sql-gateway`
+- A REST-accessible endpoint (`http://localhost:9090`) for **interactive Flink SQL queries** against the unified catalog.
 
----
+#### 🚀 Spark Compute Engine (Batch Engine)
 
-### 🧰 Use Cases
+- Container: `spark-iceberg`
+- Provides an **Apache Spark** environment pre-configured with **Apache Iceberg** support and connected to the central **Hive Metastore**.
+- **Spark Web UI** for monitoring running jobs (`http://localhost:4040`).
+- **Spark History Server** for reviewing completed jobs (`http://localhost:18080`).
 
-#### Real-Time ETL & Stream Enrichment
+#### 📚 Hive Metastore (Unified Catalog)
 
-- Ingest data from Kafka or other connectors.
-- Join with lookup data (e.g., Redis, JDBC) in real time.
-- Output to Iceberg, S3, PostgreSQL, or other sinks.
+- Container: `hive-metastore`
+- A central **metadata service** for the entire data lakehouse. It allows both Flink and Spark to interact with the same Iceberg tables consistently.
+- Uses the **PostgreSQL** database as its backend to durably store all metadata (schemas, partitions, table locations).
+- Accessible internally at `thrift://hive-metastore:9083`.
 
-#### Event-Driven Analytics
+#### 🐘 PostgreSQL (Transactional Hub & Metastore Backend)
 
-- Detect patterns using **event-time windows**, **session clustering**, or **CEP (Complex Event Processing)**.
-- Generate metrics and insights instantly on live data.
-
-#### Self-Service SQL on Streaming Data
-
-- Use SQL Gateway to empower analysts to query streaming datasets without needing deep Flink knowledge.
-- Supports materialized views, table functions, and views over dynamic data.
-
-#### Real-Time Data Lake Writes
-
-- Use Flink's native Iceberg integration to write out structured, evolving tables in real time.
-- Lakehouse-friendly, works well with batch processors (e.g., Spark) downstream.
-
-</details>
-
-<details>
-
-<summary><b>Analytics & Lakehouse: Spark, Iceberg, MinIO & Postgres</b></summary>
-
-<br>
-
-This stack provides a self-contained environment for **modern data lakehouse analytics** using Apache Spark, Apache Iceberg, MinIO (S3-compatible object storage), and PostgreSQL. It features an Iceberg REST Catalog for centralized metadata management.
-
-### 📌 Description
-
-This architecture enables building and querying **data lakehouses**, where data is stored in an open format (Iceberg) on object storage (MinIO), offering ACID transactions, schema evolution, and time travel capabilities, while leveraging the powerful distributed processing engine of Apache Spark. The included PostgreSQL database can serve as a source/sink for relational data or potentially for Change Data Capture (CDC) scenarios.
-
-It's ideal for **batch ETL/ELT, interactive data exploration via notebooks, and building reliable, scalable data analytics pipelines** on structured and semi-structured data.
-
----
-
-### 🔑 Key Components
-
-#### 🚀 Spark + Iceberg Compute Engine
-
-- Container: `tabular/spark-iceberg:3.5.5_1.8.1` (`spark-iceberg`)
-- Provides an **Apache Spark** environment pre-configured with **Apache Iceberg** support.
-- Includes **Jupyter Notebook server** for interactive analytics (`http://localhost:8888`).
-- **Spark Web UI** for monitoring jobs (`http://localhost:8080`).
-- Configured via `spark-defaults.conf` to connect to the Iceberg REST catalog (`rest:8181`) and use MinIO as the S3 backend.
-- Environment variables provide AWS credentials (`admin`/`password`) for MinIO access.
-
-#### 📚 Iceberg REST Catalog
-
-- Container: `apache/iceberg-rest-fixture` (`iceberg-rest`)
-- A dedicated **REST service for managing Iceberg table metadata**.
-- Allows multiple engines (like the Spark service here) to interact with the same Iceberg tables consistently.
-- Configured to use MinIO (`http://minio:9000`) as the storage backend for the warehouse path `s3://warehouse/`.
-- Accessible internally at `http://rest:8181`.
+- Container: `postgres`
+- This component is the transactional and metadata backbone of the entire platform, serving two distinct and critical functions:
+  1.  **Durable Metastore Backend:** It provides the persistent storage for the **Hive Metastore**. All schemas, table versions, and partition information for the entire Iceberg lakehouse are stored transactionally in PostgreSQL. This makes the lakehouse catalog robust, reliable, and recoverable (Database: `metastore`).
+  2.  **Transactional Workload & CDC Hub:** It functions as a full-fledged relational database for application workloads. It is **purpose-built for Change Data Capture (CDC)**, with `wal_level=logical` enabled by design. This configuration prepares it for seamless integration with tools like **Debezium**, allowing every `INSERT`, `UPDATE`, and `DELETE` to be captured and streamed into the Flink/Iceberg pipeline.
+- Accessible at `localhost:5432` (Database: `fh_dev`).
 
 #### 💾 S3-Compatible Object Storage (MinIO)
 
-- Container: `minio/minio` (`minio`)
-- Provides **S3-compatible object storage**, acting as the data lake storage layer for Iceberg tables.
-- **MinIO API** accessible at `http://localhost:9000`.
-- **MinIO Console UI** accessible at `http://localhost:9001` (Credentials: `admin`/`password`).
-- Initialized by the `mc` service.
-
-#### 🛠 MinIO Client (Initialization)
-
-- Container: `minio/mc` (`mc`)
-- Utility container that runs once to:
-  - Wait for MinIO to be ready.
-  - Configure the MinIO client (`mc`) to connect to the `minio` service.
-  - **Create necessary buckets** (`warehouse` for Iceberg, `factorhouse` for general use) and set public access policies.
-
-#### 🐘 Relational Database (PostgreSQL)
-
-- Container: `postgres:17` (`postgres`)
-- Standard **PostgreSQL database**.
-- Accessible at `localhost:5432` (Credentials: `db_user`/`db_password`, Database: `factorhouse`).
-- **`wal_level=logical`**: This setting is enabled, suggesting potential use cases involving **Change Data Capture (CDC)**, allowing changes in Postgres tables to be streamed out.
-- Includes volume mount for initialization scripts (`./resources/analytics/postgres`), allowing pre-loading of schemas or data.
+- **MinIO** provides **S3-compatible object storage**, acting as the data lake storage layer for Iceberg tables, Flink checkpoints, and other artifacts.
+  - **MinIO API** at `http://localhost:9000` | **MinIO Console UI** at `http://localhost:9001` (`admin`/`password`).
+- **MinIO Client**: A utility container that initializes MinIO by creating necessary buckets: `warehouse` (for Iceberg data), `fh-dev-bucket`, `flink-checkpoints`, and `flink-savepoints`.
 
 ---
 
 ### 🧰 Use Cases
 
-#### Data Lakehouse Implementation
+#### Unified Data Lakehouse
 
-- Create, manage, and query Iceberg tables stored in MinIO using Spark SQL or DataFrame API via Jupyter notebooks.
-- Perform ACID-compliant operations (INSERT, UPDATE, DELETE, MERGE) on large datasets.
-- Leverage Iceberg features like schema evolution, partitioning, and time travel/version rollback.
+- Create, manage, and query Iceberg tables using both Flink SQL for real-time writes and Spark for batch updates, all through the central Hive Metastore.
+- Perform ACID-compliant operations from either engine on the same datasets.
+
+#### Real-Time Ingestion from Transactional Systems (CDC)
+
+- The architecture is **purpose-built to support CDC pipelines**. The `wal_level=logical` setting in PostgreSQL is intentionally enabled, allowing a tool like Debezium to capture every row-level change (INSERT, UPDATE, DELETE) and stream it into the data lakehouse in near real-time. This keeps the Iceberg tables continuously synchronized with the operational database.
 
 #### Batch ETL/ELT Pipelines
 
-- Ingest data from various sources (including Postgres), process/transform it using Spark, and load it into Iceberg tables in the lakehouse.
-- Read data from Iceberg tables for downstream processing or reporting.
+- Use Spark to ingest data from various sources (including transactional data from PostgreSQL), perform large-scale transformations, and load it into Iceberg tables.
+- Read from Iceberg tables for downstream processing, reporting, or machine learning.
 
-#### Interactive Data Analysis & Exploration
+#### Real-Time ETL & Stream Enrichment
 
-- Connect to the Jupyter server (`:8888`) to run Spark code (PySpark, Spark SQL) interactively against data stored in MinIO/Iceberg or the Postgres database.
-- Visualize results directly within notebooks.
+- Ingest data from Kafka or CDC streams with Flink.
+- Join streaming data with lookup tables in real-time.
+- Write enriched, structured data directly into Iceberg tables, making it immediately available for Spark to query.
 
-#### Change Data Capture (CDC) Foundation
+#### Interactive & Self-Service Analytics
 
-- The Postgres `wal_level=logical` setup enables capturing row-level changes. While a CDC tool (like Debezium via Kafka Connect, or a Spark connector) isn't included _in this stack_, the database is ready for such integration, allowing changes from Postgres to be ingested into the Iceberg lakehouse in near real-time.
-
-#### Development & Testing Environment
-
-- Provides a local, integrated environment for developing and testing Spark applications that interact with Iceberg tables, S3 storage, and a relational database.
+- Empower analysts to query **live, streaming data** via the Flink SQL Gateway and **historical, large-scale data** using Spark—all with familiar SQL pointed at the same tables.
 
 </details>
 
@@ -397,28 +337,79 @@ git clone git@github.com:factorhouse/factorhouse-local.git
 cd factorhouse-local
 ```
 
-### Download Kafka/Flink Connectors and Spark Iceberg Dependencies
+### Downloading Dependencies
 
-The following Kafka/Flink connectors and Spark Iceberg dependency JAR files are downloaded and made available for use:
+Core services like Flink, Spark, and Kafka Connect are designed to be modular and do not come bundled with the specific connectors and libraries needed to communicate with other systems like the Hive Metastore, Apache Iceberg, or S3.
 
-- **Kafka**
-  - [Confulent S3 Sink Connector](https://docs.confluent.io/kafka-connectors/s3-sink/current/overview.html)
-  - [Debezium connector for PostgreSQL](https://debezium.io/documentation/reference/stable/connectors/postgresql.html)
-  - [Apache Iceberg Sink Connector](https://github.com/databricks/iceberg-kafka-connect)
-  - [Amazon MSK Data Generator](https://github.com/awslabs/amazon-msk-data-generator)
-- **Flink**
-  - [Apache Kafka SQL Connector](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/table/kafka/)
-  - [Flink Facker Connector](https://github.com/knaufk/flink-faker)
-- **Iceberg**
-  - [Iceberg Spark Runtime](https://iceberg.apache.org/docs/latest/spark-getting-started/)
-  - [Iceberg AWS Bundle](https://iceberg.apache.org/docs/latest/aws/)
+`setup-env.sh` automates the process of downloading all the required dependencies and organizing them into a local `deps` directory. When the services are started with docker-compose, this directory is mounted as a volume, injecting the libraries directly into each container's classpath.
+
+<details>
+
+<summary><b>View all downloaded dependencies</b></summary>
+
+#### Kafka Connectors
+
+- **Confluent S3 Connector:** For streaming data from Kafka to S3.
+- **Debezium PostgreSQL Connector:** For capturing row-level changes from a PostgreSQL database.
+- **Amazon MSK Data Generator:** A tool for generating sample data for testing.
+- **Iceberg Kafka Connect:** For sinking Kafka records into Apache Iceberg tables.
+
+#### Flink Connectors
+
+- **Kafka SQL Connector:** Enables Flink to read from and write to Kafka topics using SQL.
+- **Avro Confluent Registry:** Allows Flink to work with Avro schemas stored in Confluent Schema Registry.
+- **Flink Faker:** A connector for generating fake data streams within Flink, useful for development and testing.
+
+#### Flink Hive Dependencies
+
+- **Hive SQL Connector:** Allows Flink to connect to a Hive Metastore and query Hive tables.
+- **Supporting Libraries:** Includes `Hive Exec`, `Antlr`, and `Thrift` libraries necessary for the Hive integration to function.
+
+#### Flink Iceberg/Parquet Dependencies
+
+- **Iceberg Flink Runtime:** The core library for Flink to read from and write to Apache Iceberg tables.
+- **Iceberg AWS Bundle:** Provides AWS-specific integrations for Iceberg, like S3 file I/O.
+- **Parquet SQL Formatter:** Enables Flink to handle the Parquet file format.
+
+#### Hadoop/Hive Metastore Dependencies
+
+- **Hadoop Libraries:** A collection of core Hadoop modules (`hadoop-common`, `hadoop-aws`, `hadoop-auth`) and their dependencies (`aws-java-sdk-bundle`, `guava`, etc.) required for interacting with HDFS-compatible file systems like S3.
+- **PostgreSQL JDBC Driver:** Required for the Hive Metastore to communicate with its PostgreSQL backend database.
+
+#### Spark Iceberg Dependencies
+
+- **Iceberg Spark Runtime:** The core library for Spark to read from and write to Apache Iceberg tables.
+- **Iceberg AWS Bundle:** Provides AWS-specific integrations for Spark, enabling it to work with Iceberg tables on S3.
+
+</details>
+
+<br>
 
 ```bash
 ./resources/setup-env.sh
+▶️  Downloading Kafka connectors...
+⏳ Progress : [##################################################] 100%
+✅ Download complete in 0m 27s!
 
-# downloading kafka connectors ...
-# downloading flink connectors and format dependencies...
-# downloading spark iceberg dependencies...
+▶️  Downloading Flink connectors...
+⏳ Progress : [##################################################] 100%
+✅ Download complete in 0m 4s!
+
+▶️  Downloading Flink Hive dependencies...
+⏳ Progress : [##################################################] 100%
+✅ Download complete in 0m 11s!
+
+▶️  Downloading Flink Iceberg/Parquet dependencies...
+⏳ Progress : [##################################################] 100%
+✅ Download complete in 0m 12s!
+
+▶️  Downloading Hadoop/Hive Metastore dependencies...
+⏳ Progress : [##################################################] 100%
+✅ Download complete in 0m 36s!
+
+▶️  Downloading Spark Iceberg dependencies...
+⏳ Progress : [##################################################] 100%
+✅ Download complete in 0m 11s!
 ```
 
 ### Update Kpow and Flex Licenses
@@ -439,24 +430,24 @@ For managing Kpow and Flex licenses effectively, it's strongly recommended to st
 
 The Docker Compose files facilitates this by allowing you to specify the path to your license file using **environment variables** on your host machine _before_ launching the services. Specifically, they are configured to look for these variables and use their values to locate the appropriate license file via the `env_file` directive. If an environment variable is not set, a default path (usually within the `resources` directory) is used as a fallback.
 
-The specific environment variables used are:
+Regardless of the edition, only a single licence file is expected for **Kpow** and **Flex**.
 
-- **`KPOW_TRIAL_LICENSE`**: Specifies the path to the Kpow Enterprise Trial license file.
-- **`KPOW_COMMUNITY_LICENSE`**: Specifies the path to the Kpow Community license file.
-- **`FLEX_TRIAL_LICENSE`**: Specifies the path to the Flex Trial license file.
-- **`FLEX_COMMUNITY_LICENSE`**: Specifies the path to the Flex Community license file.
+- **`KPOW_LICENSE`**: Specifies the path to the Kpow license file.
+- **`FLEX_LICENSE`**: Specifies the path to the Flex license file.
 
 **Example Usage:**
 
-Imagine your Kpow Community license is stored at `/opt/licenses/kpow-community.env`. To instruct Docker Compose to use this specific file, you would set the environment variable on your host _before_ running the compose command:
+Imagine your Kpow license is stored at `/home/<username>/.factorhouse/kpow-license.env`. To instruct Docker Compose to use this specific file, you would set the environment variable on your host _before_ running the compose command:
 
 ```bash
 # Set the environment variable (syntax may vary slightly depending on your shell)
-export KPOW_COMMUNITY_LICENSE=/opt/licenses/kpow-community.env
+export KPOW_LICENSE=/home/<username>/.factorhouse/kpow-license.env
 
 # Now run Docker Compose - it will use the path set above
-docker compose -p kpow -f compose-kpow-community.yml up -d
+docker compose -p kpow -f compose-kpow.yml up -d
 ```
+
+> By default, it is configured to deploy the Enterprise edition. See below for instructions on how to configure it to run the Community edition instead.
 
 <details>
 
@@ -477,110 +468,108 @@ LICENSE_SIGNATURE=<license-signature>
 <summary>License mapping details</summary>
 
 ```yaml
-# compose-kpow-trial.yml
+# compose-kpow.yml
 services:
   kpow:
     ...
     env_file:
       - resources/kpow/config/trial.env
-      - ${KPOW_TRIAL_LICENSE:-resources/kpow/config/trial-license.env}
+      - ${KPOW_LICENSE:-resources/kpow/config/license.env}
 
-# compose-kpow-community.yml
-services:
-  kpow:
-    ...
-    env_file:
-      - resources/kpow/config/community.env
-      - ${KPOW_COMMUNITY_LICENSE:-resources/kpow/config/community-license.env}
-
-# compose-flex-trial.yml
+# compose-flex.yml
 services:
   flex:
   ...
   env_file:
     - resources/flex/config/trial.env
-    - ${FLEX_TRIAL_LICENSE:-resources/flex/config/trial-license.env}
-
-# compose-flex-trial.yml
-services:
-  flex:
-  ...
-  env_file:
-    - resources/flex/config/local-community.env
-    - ${KPOW_COMMUNITY_LICENSE:-resources/flex/config/community-license.env}
+    - ${FLEX_LICENSE:-resources/flex/config/license.env}
 ```
 
 </details>
 
-## Start Resources
+## Running the Platform
 
-There are two primary methods for launching the various Docker Compose stacks (Kpow, Flex, Analytics, Pinot).
+To get the platform running, you first need to configure your local environment. This involves setting environment variables to select the edition you want to run (Community or Enterprise) and providing the file paths to your licenses. Once these prerequisites are set, you can launch the services using `docker compose`. You have two primary options: you can start all services (Kpow, Flex, and Pinot) together for a fully integrated experience, or you can run Kpow and Flex independently for more focused use cases. When you are finished, remember to run the corresponding `down` command to stop and remove the containers, and unset the environment variables to clean up your session.
 
-- The first method launches all stacks sequentially as an integrated system, offering variants for either **Kpow Enterprise (Trial)** (`compose-kpow-trial.yml`) or **Kpow Community** (`compose-kpow-community.yml`) as the initial component. It uses the `&&` operator to ensure the Kpow stack starts first, which is important becuse it is responsible for creating the shared `factorhouse` Docker network used by the other services. Note that this integrated approach employs the `-p <project_name>` flag for each `docker compose` command (e.g., `-p kpow`, `-p flex`) to assign distinct project names. This prevents potential conflicts and "orphan container" warnings that can occur when Docker Compose manages multiple configurations from the same directory, ensuring each stack is managed as a separate entity while sharing the network.
-- The second method demonstrates starting services individually. Kpow (Trial or Community) can be launched standalone. To start Flex or Analytics independently (perhaps for isolated testing), the `USE_EXT=false` environment variable should be prepended to their respective commands. This overrides their default network configuration (defined as `external: ${USE_EXT:-true}` within their Compose files), forcing them to create its own Docker network. Note that the Pinot stack cannot be started in this isolated fashion because its configuration explicitly depends on the Zookeeper service provided by the Kpow stack, requiring them to be on the same network.
+### **1. Prerequisite: Configure Your Environment**
+
+Before running any commands, configure your shell environment by uncommenting and setting the following variables in your terminal.
 
 ```bash
-## Method 1
-# Kpow/Flex Enterprise
-docker compose -p kpow -f compose-kpow-trial.yml up -d \
-  && docker compose -p flex -f compose-flex-trial.yml up -d \
-  && docker compose -p analytics -f compose-analytics.yml up -d \
-  && docker compose -p pinot -f compose-pinot.yml up -d
+# --- Configuration ---
 
-# Kpow/Flex Community
-docker compose -p kpow -f compose-kpow-community.yml up -d \
-  && docker compose -p flex -f compose-flex-community.yml up -d \
-  && docker compose -p analytics -f compose-analytics.yml up -d \
-  && docker compose -p pinot -f compose-pinot.yml up -d
+# Edition (choose one by uncommenting the lines)
+# For Enterprise Edition:
+# unset KPOW_SUFFIX
+# unset FLEX_SUFFIX
 
-## Method 2
-# Kpow Enterprise
-docker compose -f compose-kpow-trial.yml up -d
-# Flex Enterprise
-USE_EXT=false docker compose -f compose-flex-trial.yml up -d
+# For Community Edition:
+# export KPOW_SUFFIX="-ce"
+# export FLEX_SUFFIX="-ce"
 
-# Kpow Community
-docker compose -f compose-kpow-community.yml up -d
-# Flex Community
-USE_EXT=false docker compose -f compose-flex-community.yml up -d
-
-USE_EXT=false docker compose -p analytics -f compose-analytics.yml up -d
-# Pinot cannot be started on its own because it depends on the Zookeeper service in the Kpow stack
+# Licenses (provide the path to your license .env files)
+# export KPOW_LICENSE="/path/to/your/kpow-license.env"
+# export FLEX_LICENSE="/path/to/your/flex-license.env"
 ```
 
-## Stop/Remove Resources
+### **2. Choose Your Launch Method**
 
-Likewise, there are two methods for stopping and removing the containers and Docker networks.
+#### Option A: Run the Complete Platform
 
-- The first method handles the teardown of the **entire integrated system**. It uses `docker compose down` sequentially for each stack, specifying the corresponding `-p <project_name>` flag used during startup (e.g., `-p pinot`, `-p analytics`) to ensure the correct set of resources is targeted. The order is reversed compared to startup, with the Kpow stack (Trial or Community) being brought down _last_. This is necessary because the Kpow stack creates the shared `factorhouse` network, and removing it last allows other services to cleanly detach before the network is removed.
-- The second method addresses stopping **individual services** that might have been started in isolation. Kpow (Trial or Community) is stopped using a simple `docker compose down`. For Flex and Analytics, if they were started independently using `USE_EXT=false`, the same `USE_EXT=false` environment variable _must_ be prepended to the `docker compose down` command. This ensures Docker Compose correctly identifies and removes the _isolated_ network that was created specifically for that stack during its isolated startup.
+This is the standard method and launches all services together on a shared network.
+
+**To Start All Services:**
 
 ```bash
-## Method 1
-# Kpow/Flex Enterprise
+docker compose -p kpow -f ./compose-kpow.yml up -d \
+  && docker compose -p flex -f ./compose-flex.yml up -d \
+  && docker compose -p pinot -f compose-pinot.yml up -d
+```
+
+**To Stop All Services:**
+
+```bash
 docker compose -p pinot -f compose-pinot.yml down \
-  && docker compose -p analytics -f compose-analytics.yml down \
-  && docker compose -p flex -f compose-flex-trial.yml down \
-  && docker compose -p kpow -f compose-kpow-trial.yml down
+  && docker compose -p flex -f ./compose-flex.yml down \
+  && docker compose -p kpow -f ./compose-kpow.yml down
+```
 
-# Kpow/Flex Community
-docker compose -p pinot -f compose-pinot.yml down \
-  && docker compose -p analytics -f compose-analytics.yml down \
-  && docker compose -p flex -f compose-flex-community.yml down \
-  && docker compose -p kpow -f compose-kpow-community.yml down
+#### Option B: Run Services Individually
 
-## Method 2
-# Kpow Enterprise
-docker compose -f compose-kpow-trial.yml down
-# Flex Enterprise
-USE_EXT=false docker compose -f compose-flex-trial.yml down
+This method is useful if you only need a specific component.
 
-# Kpow Community
-docker compose -f compose-kpow-community.yml down
-# Flex Community
-USE_EXT=false docker compose -f compose-flex-community.yml down
+**To Start Kpow Only:**
 
-USE_EXT=false docker compose -p analytics -f compose-analytics.yml down
+```bash
+docker compose -p kpow -f ./compose-kpow.yml up -d
+```
+
+**To Start Flex Only:**
+
+This command creates a dedicated Docker network for the Flex stack instead of using an external one.
+
+```bash
+USE_EXT=false docker compose -p flex -f ./compose-flex.yml up -d
+```
+
+> **Note:** Apache Pinot cannot be started on its own because it depends on the ZooKeeper service included in the Kpow stack.
+
+**To Stop Individual Services:**
+
+```bash
+# Stop Kpow
+docker compose -p kpow -f ./compose-kpow.yml down
+
+# Stop Flex
+USE_EXT=false docker compose -p flex -f ./compose-flex.yml down
+```
+
+### **3. Clean Up Your Environment**
+
+After stopping the services, run this command to unset the environment variables from your terminal session.
+
+```bash
+unset KPOW_SUFFIX FLEX_SUFFIX KPOW_LICENSE FLEX_LICENSE
 ```
 
 ## Main Services
@@ -617,26 +606,19 @@ The following sections show key services and their associated port mappings.
 | `kafka-2`    | `9093:9093`              | Kafka Broker 2 (message broker instance)                  |
 | `kafka-3`    | `9094:9094`              | Kafka Broker 3 (message broker instance)                  |
 
-### Flink with Flex
+### Unified Analytics with Flex
 
-| Service Name  | Port(s) (Host:Container) | Description                                                       |
-| :------------ | :----------------------- | :---------------------------------------------------------------- |
-| `flex`        | `3001:3000`              | Flex (Web UI for Flink management, using host port 3001)          |
-| `jobmanager`  | `8082:8081`              | Apache Flink JobManager (coordinates Flink jobs, Web UI/REST API) |
-| `sql-gateway` | `9090:9090`              | Apache Flink SQL Gateway (REST endpoint for SQL queries)          |
+| Service Name     | Port(s) (Host:Container)     | Description                                                                                     |
+| :--------------- | :--------------------------- | :---------------------------------------------------------------------------------------------- |
+| `flex`           | `3001:3000`                  | Flex UI for enterprise Flink management and monitoring.                                         |
+| `jobmanager`     | `8082:8081`                  | Apache Flink JobManager UI & REST API for cluster coordination.                                 |
+| `sql-gateway`    | `9090:9090`                  | Apache Flink SQL Gateway for submitting interactive SQL queries.                                |
+| `spark`          | `4040:4040`<br>`18080:18080` | Spark Web UI for monitoring running jobs.<br>Spark History Server for reviewing completed jobs. |
+| `minio`          | `9001:9001`<br>`9000:9000`   | MinIO Console UI (at port `9001`).<br>MinIO S3-compatible API (at port `9000`).                 |
+| `postgres`       | `5432:5432`                  | PostgreSQL database, used as the Hive Metastore backend.                                        |
+| `hive-metastore` | `9083:9083`                  | Apache Hive Metastore service, providing a central catalog for Flink and Spark.                 |
 
-_(Note: `taskmanager-1`, `taskmanager-2`, `taskmanager-3` do not expose ports to the host)_
-
-### Analytics & Lakehouse
-
-| Service Name    | Port(s) (Host:Container)      | Description                                           |
-| :-------------- | :---------------------------- | :---------------------------------------------------- |
-| `spark-iceberg` | `4040:4040`,<br>`18080:18080` | Spark Web UI<br>Spark History Server                  |
-| `rest`          | `8181:8181`                   | Apache Iceberg REST Catalog Service                   |
-| `minio`         | `9001:9001`, `9000:9000`      | MinIO S3 Object Storage (9000: API, 9001: Console UI) |
-| `postgres`      | `5432:5432`                   | PostgreSQL Database Server                            |
-
-_(Note: `mc` does not expose ports to the host)_
+_(**Note:** The `taskmanager-*` and `mc` services run in the background and do not expose ports to the host computer.)_
 
 ### Apache Pinot OLAP
 
@@ -646,108 +628,96 @@ _(Note: `mc` does not expose ports to the host)_
 | `pinot-broker`     | `18099:8099`             | Apache Pinot Broker (handles query routing and results)     |
 | `pinot-server`     | `18098:8098`             | Apache Pinot Server (hosts data segments, executes queries) |
 
-## Custom Flink Docker Image
+## 📌 Further Configuration
 
-We provide a custom Docker image ([`factorhouse/flink`](https://hub.docker.com/r/factorhouse/flink)) - a multi-architecture (**amd64**, **arm64**) Apache Flink environment based on the LTS release (`flink:1.20.1` as of May 2025). This image is specially optimized for running Flink jobs, including PyFlink and Flink SQL, and comes with out-of-the-box support for key data ecosystem components such as S3, Hadoop, Apache Iceberg, and Parquet.
+### Custom Dependency Loading
 
-### Key Features:
+The Flink services (`jobmanager`, `taskmanager`, and `sql-gateway`) do not have their dependencies baked into the Docker image. Instead, all required JAR files are dynamically loaded at runtime using a combination of Docker volume mounts and a Flink classpath discovery mechanism.
 
-- **Flink Version:** Apache Flink LTS (`1.20.1`).
-- **Java Runtime:** Uses **Adoptium Temurin OpenJDK 11** (`11.0.27+6`), installed in `/opt/java`. The appropriate architecture version is downloaded and verified during the build. `JAVA_HOME` is set accordingly.
-  - _Note:_ This specific JDK setup is necessary for reliably building PyFlink dependencies on `arm64` architectures.
-- **Python Support:**
-  - Python 3, `pip`, and essential build tools are installed.
-  - **PyFlink** (`apache-flink` package) version `1.20.1`, matching the Flink release, is installed via pip.
-- **Bundled Dependencies:** Includes pre-downloaded JAR files for common Flink SQL use cases, placed in dedicated directories:
-  - `/tmp/hadoop/`: Hadoop 3.3.6 core, HDFS client, MapReduce client, Auth, AWS connector (`hadoop-aws`), and necessary dependencies (Woodstox, Jackson, Guava, AWS SDK Bundle, etc.).
-  - `/tmp/iceberg/`: Apache Iceberg 1.8.1 runtime for Flink 1.20 (`iceberg-flink-runtime-1.20`) and the AWS bundle (`iceberg-aws-bundle`).
-  - `/tmp/parquet/`: Flink SQL Parquet format connector (`flink-sql-parquet`) version 1.20.1.
-- **S3 Filesystem Plugins:** The standard Flink S3 filesystem connectors (`flink-s3-fs-hadoop` and `flink-s3-fs-presto`) are copied into the `/opt/flink/plugins/` directory for easy activation.
-- **Custom Flink Scripts:** Core Flink startup scripts (`config.sh`, `flink-console.sh`, `flink-daemon.sh`, `sql-client.sh`) located in `/opt/flink/bin/` have been **replaced with custom versions**. These scripts enable the custom dependency loading mechanism described below.
-- **Custom Hadoop Configuration:** A `core-site.xml` file is copied to `/opt/hadoop/etc/hadoop/`, allowing for pre-configuration of Hadoop/S3 settings (e.g., S3 endpoints, credentials providers via `HADOOP_CONF_DIR`).
+Dependencies for Hadoop, Hive, Iceberg, and Parquet are first downloaded to the local `./resources/deps` directory on the host machine. These directories are then mounted as volumes directly into the Flink containers at specific paths (e.g., `/tmp/hadoop`, `/tmp/iceberg`).
 
-### 📌 Custom Dependency Loading for SQL Client/Gateway
+The Flink runtime is then instructed to scan these directories by the `CUSTOM_JARS_DIRS` environment variable. This variable contains a semicolon-separated list of paths (`"/tmp/hadoop;/tmp/hive;/tmp/iceberg;/tmp/parquet"`) that Flink will automatically search for JARs to add to its classpath upon startup.
 
-The `factorhouse/flink` image simplifies using Flink SQL with common formats and filesystems by pre-packaging essential JARs (Hadoop, Iceberg, Parquet). However, these JARs reside in `/tmp/*` directories, **not** in the standard `/opt/flink/lib` directory scanned by default by the Flink SQL Client and SQL Gateway.
-
-To bridge this gap, this image utilizes a **custom class loading mechanism** implemented via the modified Flink scripts in `/opt/flink/bin/`.
-
-**How it Works:**
-
-1.  The custom startup scripts check for the presence of the environment variable `CUSTOM_JARS_DIRS`.
-2.  If `CUSTOM_JARS_DIRS` is set, the scripts scan the specified directories (separated by semicolons `;`) and add any found JAR files to the Flink classpath before launching the service (JobManager, TaskManager, SQL Client, SQL Gateway).
-
-**Default Configuration:**
-
-This image is designed to work out-of-the-box for SQL Client/Gateway scenarios involving the bundled dependencies. This is typically achieved by setting the environment variable in the Flink Docker Compose files: `compose-flex-trial.yml` and `compose-flex-community.yml`:
+However, the **SQL Gateway** has a special requirement. In addition to the standard dependencies, it needs access to specific Flink SQL connectors (like Kafka, Avro, etc.) which are mounted into the `/tmp/connector` directory. Since the SQL Gateway does not support custom JAR loading through its own configuration, the `CUSTOM_JARS_DIRS` environment variable for this specific service must be updated to include this path. This ensures the Gateway can successfully load the connectors required to execute SQL queries against external systems.
 
 ```yaml
+...
+
 x-common-environment: &flink_common_env_vars
   AWS_REGION: us-east-1
-  HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
-  CUSTOM_JARS_DIRS: "/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
+  HADOOP_CONF_DIR: /opt/flink/conf
+  HIVE_CONF_DIR: /opt/flink/conf
+  CUSTOM_JARS_DIRS: "/tmp/hadoop;/tmp/hive;/tmp/iceberg;/tmp/parquet" # <-- Add ;/tmp/connector for SQL Gateway
+
+x-common-flink-volumes: &flink_common_volumes
+  ...
+  - ./resources/deps/hadoop:/tmp/hadoop
+  - ./resources/deps/flink/hive/flink-sql-connector-hive-3.1.3_2.12-1.20.1.jar:/tmp/hive/flink-sql-connector-hive-3.1.3_2.12-1.20.1.jar
+  - ./resources/deps/flink/hive/antlr-runtime-3.5.2.jar:/tmp/hive/antlr-runtime-3.5.2.jar
+  - ./resources/deps/flink/iceberg:/tmp/iceberg
+  - ./resources/deps/flink/parquet:/tmp/parquet
+  - ./resources/deps/flink/connector:/tmp/connector
 
 services:
+  ...
   jobmanager:
-    image: factorhouse/flink:latest
+    <<: *flink_image_pull_policy_config
     container_name: jobmanager
-    pull_policy: always
     command: jobmanager
-    ports:
-      - "8082:8081"
-    networks:
-      - factorhouse
+    ...
     environment:
       <<: *flink_common_env_vars
-    volumes:
-      - ./resources/flex/flink/flink-conf.yaml:/opt/flink/conf/flink-conf.yaml:ro
-      - ./resources/flex/flink/sql-client-defaults.yaml:/opt/flink/conf/sql-client-defaults.yaml:ro
-      - ./resources/flex/connector:/tmp/connector
+    volumes: *flink_common_volumes
 ```
 
-Setting **CUSTOM_JARS_DIRS** as shown ensures the Hadoop, Iceberg, and Parquet JARs are loaded when needed by the SQL Client or Gateway.
+### PyFlink Support
 
-**Verifying Classpath Loading:**
+PyFlink is supported by setting the `FLINK_SUFFIX` environment variable before launching the services.
 
-You can observe the difference in the classpath reported in the logs:
+By exporting `export FLINK_SUFFIX="-py"`, you instruct Docker Compose to modify its build process for the Flink services. This change directs it to use the `resources/flink/Dockerfile-py` file instead of the default one. During the image build, this specific Dockerfile extends the base Flink image by installing Python, `pip`, and the `apache-flink` Python package.
 
-1. With **CUSTOM_JARS_DIRS** Set (Default recommended for SQL Client/Gateway):
+As a result, the `jobmanager` and `taskmanager` containers will be fully equipped with the necessary environment to develop and execute PyFlink jobs. You can inspect the `Dockerfile-py` for the exact commands used.
 
-   ```yaml
-   x-common-environment: &flink_common_env_vars
-     AWS_REGION: us-east-1
-     HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
-     CUSTOM_JARS_DIRS: "/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
-   ```
+> You can also build the image before starting the Docker service by `docker build -t fh-flink-1.20.1${FLINK_SUFFIX:-} ./resources/flink`
 
-   JobManager Log Output:
+```yaml
+x-common-flink-config: &flink_image_pull_policy_config
+  image: fh-flink-1.20.1${FLINK_SUFFIX:-} # ${FLINK_SUFFIX} is either unset (blank) or -py
+  build:
+    context: ./resources/flink/
+    dockerfile: Dockerfile${FLINK_SUFFIX:-}
+  pull_policy: never
 
-   ```log
-   Starting Job Manager
-   [INFO] Added custom JARs from /tmp/hadoop
-   [INFO] Added custom JARs from /tmp/iceberg
-   [INFO] Added custom JARs from /tmp/parquet
-   Classpath Output:
-   /opt/flink/lib/flink-cep-1.20.1.jar:/opt/flink/lib/flink-connector-files-1.20.1.jar:/opt/flink/lib/flink-csv-1.20.1.jar:/opt/flink/lib/flink-json-1.20.1.jar:/opt/flink/lib/flink-scala_2.12-1.20.1.jar:/opt/flink/lib/flink-table-api-java-uber-1.20.1.jar:/opt/flink/lib/flink-table-planner-loader-1.20.1.jar:/opt/flink/lib/flink-table-runtime-1.20.1.jar:/opt/flink/lib/log4j-1.2-api-2.17.1.jar:/opt/flink/lib/log4j-api-2.17.1.jar:/opt/flink/lib/log4j-core-2.17.1.jar:/opt/flink/lib/log4j-slf4j-impl-2.17.1.jar:/tmp/hadoop/stax2-api-4.2.1.jar:/tmp/hadoop/hadoop-shaded-guava-1.1.1.jar:/tmp/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/tmp/hadoop/commons-configuration2-2.8.0.jar:/tmp/hadoop/hadoop-auth-3.3.6.jar:/tmp/hadoop/hadoop-mapreduce-client-core-3.3.6.jar:/tmp/hadoop/woodstox-core-6.5.1.jar:/tmp/hadoop/hadoop-aws-3.3.6.jar:/tmp/hadoop/hadoop-common-3.3.6.jar:/tmp/hadoop/hadoop-hdfs-client-3.3.6.jar:/tmp/iceberg/iceberg-aws-bundle-1.8.1.jar:/tmp/iceberg/iceberg-flink-runtime-1.20-1.8.1.jar:/tmp/parquet/flink-sql-parquet-1.20.1.jar:/opt/flink/lib/flink-dist-1.20.1.jar
-   ...
-   ```
+...
 
-2. Without **CUSTOM_JARS_DIRS** Set (e.g., Commented Out):
+services:
+  ...
+  jobmanager:
+    <<: *flink_image_pull_policy_config
+    container_name: jobmanager
+    command: jobmanager
+    ...
+    environment:
+      <<: *flink_common_env_vars
+    volumes: *flink_common_volumes
+```
 
-   ```yaml
-   x-common-environment: &flink_common_env_vars
-     AWS_REGION: us-east-1
-     #HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
-     #CUSTOM_JARS_DIRS: "/tmp/hadoop;/tmp/iceberg;/tmp/parquet"
-   ```
+Alternatively, you can build the image manually before starting the services. This gives you more control and can speed up subsequent launches. To do this, run the `docker build` command from your terminal, making sure the tag (`-t`) exactly matches the image name specified in the `docker-compose.yml` file.
 
-   JobManager Log Output:
+**To build the PyFlink image:**
 
-   ```log
-   Starting Job Manager
-   Classpath Output:
-   /opt/flink/lib/flink-cep-1.20.1.jar:/opt/flink/lib/flink-connector-files-1.20.1.jar:/opt/flink/lib/flink-csv-1.20.1.jar:/opt/flink/lib/flink-json-1.20.1.jar:/opt/flink/lib/flink-scala_2.12-1.20.1.jar:/opt/flink/lib/flink-table-api-java-uber-1.20.1.jar:/opt/flink/lib/flink-table-planner-loader-1.20.1.jar:/opt/flink/lib/flink-table-runtime-1.20.1.jar:/opt/flink/lib/log4j-1.2-api-2.17.1.jar:/opt/flink/lib/log4j-api-2.17.1.jar:/opt/flink/lib/log4j-core-2.17.1.jar:/opt/flink/lib/log4j-slf4j-impl-2.17.1.jar:/opt/flink/lib/flink-dist-1.20.1.jar
-   ```
+```bash
+# Set the suffix for the tag and Dockerfile name
+export FLINK_SUFFIX="-py"
+
+# Build the image
+docker build \
+  -t fh-flink-1.20.1${FLINK_SUFFIX} \
+  -f ./resources/flink/Dockerfile${FLINK_SUFFIX} \
+  ./resources/flink
+```
+
+Because the image is now built and tagged locally, `docker compose up` will use it directly instead of attempting to build it again.
 
 ## Support
 

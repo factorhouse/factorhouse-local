@@ -51,7 +51,7 @@ services:
       CONNECT_PLUGIN_PATH: /usr/share/java/,/etc/kafka-connect/jars,/etc/kafka-connect/plugins
       AWS_REGION: us-east-1 # for iceberg sink
     volumes:
-      - ./resources/kpow/connector:/etc/kafka-connect/jars
+      - ./resources/deps/kafka/connector:/etc/kafka-connect/jars
       - ./resources/kpow/plugins:/etc/kafka-connect/plugins
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]
@@ -61,21 +61,25 @@ services:
       start_period: 20s
 
   kpow:
-    image: factorhouse/kpow-ce:latest
-    container_name: kpow-ce
+    image: factorhouse/kpow${KPOW_SUFFIX:-}:latest
+    container_name: kpow${KPOW_SUFFIX:-}
     pull_policy: always
     restart: always
     ports:
       - "3000:3000"
+      - "4000:4000"
     networks:
       - factorhouse
     depends_on:
       connect:
         condition: service_healthy
     env_file:
-      - resources/kpow/config/community.env
-      - ${KPOW_COMMUNITY_LICENSE:-resources/kpow/config/community-license.env}
+      - resources/kpow/config/setup.env
+      - ${KPOW_LICENSE:-resources/kpow/config/license.env}
     mem_limit: 2G
+    volumes:
+      - ./resources/kpow/jaas:/etc/kpow/jaas
+      - ./resources/kpow/rbac:/etc/kpow/rbac
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.8.0

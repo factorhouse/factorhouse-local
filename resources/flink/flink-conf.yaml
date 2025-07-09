@@ -1,0 +1,45 @@
+## JobManager setting (ignored by TaskManager)
+jobmanager.rpc.address: jobmanager
+# Mandatory memory configuration
+jobmanager.memory.process.size: 1024m
+
+# TaskManager setting (ignored by JobManager)
+taskmanager.numberOfTaskSlots: 10
+taskmanager.memory.process.size: 1024m
+
+# State backend
+state.backend: filesystem
+state.checkpoints.dir: s3a://flink-checkpoints/checkpoints/
+state.savepoints.dir: s3a://flink-savepoints/savepoints/
+
+# Heartbeat
+heartbeat.interval: 1000
+heartbeat.timeout: 5000
+
+# REST settings (applicable to JobManager)
+rest.port: 8081
+rest.bind-address: 0.0.0.0
+rest.flamegraph.enabled: true
+web.backpressure.refresh-interval: 10000
+
+# MinIO
+fs.s3a.access.key: admin
+fs.s3a.secret.key: password
+fs.s3a.endpoint: http://minio:9000
+fs.s3a.path.style.access: true
+fs.s3a.connection.ssl.enabled: false
+
+# Add this line to resolve dependency conflicts between Flink's core and its connectors.
+classloader.resolve-order: parent-first
+
+# Enable streaming Iceberg queries with OPTIONS
+table.dynamic-table-options.enabled: true
+# # Improve stability in streaming jobs
+# execution.checkpointing.mode: EXACTLY_ONCE
+# execution.checkpointing.interval: 30s
+# execution.checkpointing.timeout: 5m
+# execution.checkpointing.min-pause: 15s
+# execution.checkpointing.tolerable-failed-checkpoints: 3
+
+# # Faster task startup
+# execution.runtime-mode: streaming
