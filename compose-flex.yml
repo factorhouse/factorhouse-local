@@ -226,7 +226,6 @@ services:
   spark:
     image: apache/spark:3.5.5-java17-python3
     container_name: spark-iceberg
-    pull_policy: never
     command: >
       bash -c "
       mkdir -p /tmp/spark-events &&
