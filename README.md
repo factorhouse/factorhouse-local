@@ -347,8 +347,6 @@ This project walks through how to build a complete real-time analytics pipeline 
 
 </details>
 
-<br>
-
 _Stay tuned—more labs and projects are on the way!_
 
 ## Prerequisites
