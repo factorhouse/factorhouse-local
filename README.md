@@ -301,21 +301,55 @@ This architecture provides the foundation for ingesting data from batch (e.g., H
 
 ---
 
-<div align="center">
+## 🚀 Hands-On Labs & Projects 🚀
 
-## 🚀 New: Factor House Local Labs! 🚀
+<details>
+
+<summary><b style="font-size: 1.2em;">🧪 Factor House Local Labs 🧪</b></summary>
+
+<br>
 
 Get a fast and practical start with our new **Factor House Local labs**. These hands-on labs provide detailed walkthroughs for building real-time data pipelines using **Kafka**, **Flink**, **Spark**, **Iceberg**, and **Pinot**.
 
+Each lab is designed to be modular, hands-on, and production-inspired, helping you learn, prototype, and extend your data platform skills.
+
+<div align="center">
 <a href="https://github.com/factorhouse/examples/tree/main/fh-local-labs" target="_blank" rel="noopener noreferrer">
   <img src="./images/fh-local-labs.png" alt="Factor House Local Labs" width="600"/>
 </a>
 
-Each lab is designed to be modular, hands-on, and production-inspired, helping you learn, prototype, and extend your data platform skills.
+<br>
 
 [**➡️ Click Here to Explore the Labs**](https://github.com/factorhouse/examples/tree/main/fh-local-labs)
 
 </div>
+
+</details>
+
+<details>
+
+<summary><b style="font-size: 1.2em;">🎮 Mobile Game Top K Analytics 🎮</b></summary>
+
+<br>
+
+This project walks through how to build a complete real-time analytics pipeline for a mobile game using a modern data stack. It simulates live gameplay data, processes it in real time to calculate performance metrics, and displays the results on an interactive dashboard.
+
+<div align="center">
+<a href="https://github.com/factorhouse/examples/tree/main/projects/mobile-game-top-k-analytics" target="_blank" rel="noopener noreferrer">
+  <img src="./images/mobile-game-top-k-analytics.gif" alt="Mobile Game Top K Analytics" width="600"/>
+</a>
+
+<br>
+
+[**➡️ Click Here to Explore the Project**](https://github.com/factorhouse/examples/tree/main/projects/mobile-game-top-k-analytics)
+
+</div>
+
+</details>
+
+<br>
+
+_Stay tuned—more labs and projects are on the way!_
 
 ## Prerequisites
 
