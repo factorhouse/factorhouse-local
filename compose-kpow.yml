@@ -51,10 +51,10 @@ services:
     environment:
       CONNECT_BOOTSTRAP_SERVERS: "kafka-1:19092,kafka-2:19093,kafka-3:19094"
       CONNECT_REST_PORT: "8083"
-      CONNECT_GROUP_ID: "kpow-local-connect"
-      CONNECT_CONFIG_STORAGE_TOPIC: "kpow-local-connect-config"
-      CONNECT_OFFSET_STORAGE_TOPIC: "kpow-local-connect-offsets"
-      CONNECT_STATUS_STORAGE_TOPIC: "kpow-local-connect-status"
+      CONNECT_GROUP_ID: "fh-local-connect"
+      CONNECT_CONFIG_STORAGE_TOPIC: "fh-local-connect-config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "fh-local-connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "fh-local-connect-status"
       CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
@@ -63,6 +63,9 @@ services:
       CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
       CONNECT_PLUGIN_PATH: /usr/share/java/,/etc/kafka-connect/jars,/etc/kafka-connect/plugins
       AWS_REGION: us-east-1 # for iceberg sink
+      ## Config for OpenLineage
+      OPENLINEAGE_URL: http://marquez-api:5000
+      OPENLINEAGE_NAMESPACE: fh-local-kafka-connect
     volumes:
       - ./resources/deps/kafka/connector:/etc/kafka-connect/jars
       - ./resources/kpow/plugins:/etc/kafka-connect/plugins
