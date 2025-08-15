@@ -1,0 +1,53 @@
+services:
+  marquez-db:
+    image: postgres:14
+    container_name: marquez_db
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    ports:
+      - "5433:5432"
+    networks:
+      - factorhouse
+    environment:
+      - POSTGRES_USER=marquez
+      - POSTGRES_PASSWORD=marquez
+      - POSTGRES_DB=marquez
+    volumes:
+      - ./resources/marquez/db-config:/etc/postgresql
+
+  marquez-api:
+    image: marquezproject/marquez:0.51.1
+    container_name: marquez-api
+    entrypoint:
+      [
+        "/opt/marquez/wait-for-it.sh",
+        "marquez-db:5432",
+        "--",
+        "./entrypoint.sh",
+      ]
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    networks:
+      - factorhouse
+    env_file:
+      - resources/marquez/setup.env
+    volumes:
+      - ./resources/marquez/config/wait-for-it.sh:/opt/marquez/wait-for-it.sh
+      - ./resources/marquez/config/marquez.dev.yml:/usr/src/app/marquez.dev.yml
+
+  marquez-web:
+    image: marquezproject/marquez-web:0.51.1
+    container_name: marquez-web
+    ports:
+      - "3003:3000"
+    networks:
+      - factorhouse
+    env_file:
+      - resources/marquez/setup.env
+    depends_on:
+      - marquez-api
+
+networks:
+  factorhouse:
+    external: ${USE_EXT:-true}
+    name: factorhouse
