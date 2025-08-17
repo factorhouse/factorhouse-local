@@ -65,7 +65,7 @@ services:
       AWS_REGION: us-east-1 # for iceberg sink
       ## Config for OpenLineage
       OPENLINEAGE_URL: http://marquez-api:5000
-      OPENLINEAGE_NAMESPACE: fh-local-kafka-connect
+      OPENLINEAGE_NAMESPACE: fh-local
     volumes:
       - ./resources/deps/kafka/connector:/etc/kafka-connect/jars
       - ./resources/kpow/plugins:/etc/kafka-connect/plugins
