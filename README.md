@@ -347,6 +347,27 @@ This project walks through how to build a complete real-time analytics pipeline 
 
 </details>
 
+<details>
+
+<summary><b style="font-size: 1.2em;">🔄 CDC with Debezium on Real-Time theLook eCommerce Data 🗄️</b></summary>
+
+<br>
+
+This project unlocks the power of the popular [theLook eCommerce dataset](https://console.cloud.google.com/marketplace/product/bigquery-public-data/thelook-ecommerce) for modern event-driven applications. It uses a re-engineered [real-time data generator](https://github.com/factorhouse/examples/tree/main/datagen/thelook-ecomm) that transforms the original static dataset into a continuous stream of simulated user activity, writing directly to a PostgreSQL database.
+
+<div align="center">
+<a href="https://github.com/factorhouse/examples/tree/main/projects/thelook-ecomm-cdc" target="_blank" rel="noopener noreferrer">
+  <img src="./images/thelook-datagen.gif" alt="CDC with Debezium on Real-Time theLook eCommerce Data" width="600"/>
+</a>
+
+<br>
+
+[**➡️ Click Here to Explore the Project**](https://github.com/factorhouse/examples/tree/main/projects/thelook-ecomm-cdc)
+
+</div>
+
+</details>
+
 _Stay tuned—more labs and projects are on the way!_
 
 ## Prerequisites
