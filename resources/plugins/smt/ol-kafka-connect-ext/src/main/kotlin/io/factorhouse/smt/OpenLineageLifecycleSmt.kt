@@ -308,35 +308,50 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
             emptyList()
         }
 
-    private fun buildOutputs(): List<OpenLineage.OutputDataset> =
-        when {
+    private fun buildOutputs(): List<OpenLineage.OutputDataset> {
+        val inputTopicSchema = if (isSink() && topics.isNotEmpty()) buildSchemaFacet(topics.first()) else null
+
+        return when {
             isSource() -> topics.map { topic -> buildKafkaDataset(topic) as OpenLineage.OutputDataset }
             isSink("S3Sink") -> {
                 val bucket = this.s3Bucket ?: "unknown"
                 val dsFacet = ol.newDatasourceDatasetFacet("s3", URI.create("s3://$bucket"))
+                val facets =
+                    ol
+                        .newDatasetFacetsBuilder()
+                        .schema(inputTopicSchema)
+                        .dataSource(dsFacet)
+                        .build()
                 listOf(
                     ol
                         .newOutputDatasetBuilder()
                         .namespace("s3://$bucket")
                         .name(bucket)
-                        .facets(ol.newDatasetFacetsBuilder().dataSource(dsFacet).build())
+                        .facets(facets)
                         .build(),
                 )
             }
             isSink("IcebergSink") -> {
                 val catalog = this.icebergCatalog ?: "unknown"
                 val dsFacet = ol.newDatasourceDatasetFacet("iceberg", URI.create("iceberg://$catalog"))
+                val facets =
+                    ol
+                        .newDatasetFacetsBuilder()
+                        .schema(inputTopicSchema)
+                        .dataSource(dsFacet)
+                        .build()
                 listOf(
                     ol
                         .newOutputDatasetBuilder()
                         .namespace("iceberg://$catalog")
                         .name(catalog)
-                        .facets(ol.newDatasetFacetsBuilder().dataSource(dsFacet).build())
+                        .facets(facets)
                         .build(),
                 )
             }
             else -> emptyList()
         }
+    }
 
     private fun buildKafkaDataset(topicName: String): OpenLineage.Dataset {
         val schemaFacet = buildSchemaFacet(topicName)
@@ -351,14 +366,14 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
         return if (isSource()) {
             ol
                 .newOutputDatasetBuilder()
-                .namespace(jobNamespace)
+                .namespace(kafkaNamespace)
                 .name(topicName)
                 .facets(facets)
                 .build()
         } else {
             ol
                 .newInputDatasetBuilder()
-                .namespace(jobNamespace)
+                .namespace(kafkaNamespace)
                 .name(topicName)
                 .facets(facets)
                 .build()
