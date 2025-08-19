@@ -299,6 +299,66 @@ This architecture provides the foundation for ingesting data from batch (e.g., H
 
 </details>
 
+<details>
+
+<summary><b>Data Lineage & Observability with OpenLineage (via Marquez) and Prometheus</b></summary>
+
+<br>
+
+This Docker Compose stack deploys a powerful environment for data lineage and systems observability. It features **Marquez**, the reference implementation of the **OpenLineage** open standard for data lineage, alongside a complete **observability suite** from Prometheus, Grafana, and Alertmanager.
+
+### 📌 Description
+
+This architecture is engineered for data professionals who need to understand their data's journey and monitor the health of their systems. It combines the power of OpenLineage for standardized metadata collection with Marquez for visualization and analysis. This is complemented by the industry-standard Prometheus/Grafana stack for comprehensive metrics and alerting.
+
+The core of this stack is **OpenLineage**, a standardized API for collecting data lineage information. **Marquez** acts as the metadata server, collecting these OpenLineage events to build a living map of how datasets are produced and consumed. This is invaluable for impact and root cause analysis, data governance, and debugging complex data pipelines. The surrounding observability tools ensure the reliability and performance of the entire platform.
+
+---
+
+### 🔑 Key Components
+
+#### 🚀 OpenLineage & Marquez (Data Lineage & Metadata Service)
+
+**OpenLineage** is an open standard for the collection and analysis of data lineage. It provides a consistent format for data pipeline tools to emit metadata about jobs, datasets, and runs.
+
+- **`marquez-api` (`marquezproject/marquez:0.51.1`)**: The core Marquez backend service. It provides a RESTful API that is compliant with the OpenLineage standard, allowing it to receive metadata from a wide range of integrated tools like Flink, Spark, Airflow, and dbt.
+- **`marquez-web` (`marquezproject/marquez-web:0.51.1`)**: The web interface for Marquez, which visualizes the collected OpenLineage data. It allows users to browse the metadata catalog, explore interactive data lineage graphs, and trace the journey of their data. The UI is exposed on port `3003`.
+- **`marquez-db` (`postgres:14`)**: This PostgreSQL database serves as the backend for Marquez, storing all the metadata collected via OpenLineage events. It holds information on jobs, datasets, historical runs, and their relationships.
+
+#### 📊 Observability Stack (Prometheus, Grafana & Alertmanager)
+
+This is a widely-used, powerful open-source stack for monitoring and alerting.
+
+- **`prometheus` (`prom/prometheus:v3.5.0`)**: A time-series database that collects and stores metrics by scraping configured endpoints. It is configured via a `prometheus.yml` file and includes specific rule files for monitoring other services (e.g., Kpow), indicating its role in a larger ecosystem. It is accessible on port `19090`.
+- **`alertmanager` (`prom/alertmanager:v0.28.1`)**: Manages alerts sent by Prometheus. It is responsible for deduplicating, grouping, and routing them to the correct notification channels like email or Slack. It exposes its UI on port `19093`.
+- **`grafana` (`grafana/grafana:12.1.1`)**: A leading visualization platform for creating dashboards from the metrics stored in Prometheus. This service is pre-configured with an admin user and uses a provisioning folder to automatically set up datasources and dashboards on startup. It is available on port `3004`.
+
+---
+
+### 🧰 Use Cases
+
+#### Automated Data Lineage & Provenance Tracking
+
+- Leverage OpenLineage integrations to automatically capture lineage metadata from your data pipelines. Use Marquez to visualize the origin, movement, and transformations of data across your entire ecosystem.
+
+#### Impact and Root Cause Analysis
+
+- When a data pipeline fails or data quality issues arise, use the lineage graph in Marquez to quickly identify the root cause upstream and assess the potential impact on downstream datasets and dashboards.
+
+#### Data Governance and Compliance
+
+- Maintain a detailed, historical record of dataset versions, schema changes, and job execution history. This is essential for auditing, ensuring data governance policies are met, and understanding the lifecycle of your data.
+
+#### Centralized System Health Monitoring
+
+- Utilize the Prometheus and Grafana stack to monitor the performance and health of the Marquez services and other integrated components. Create dashboards to track API latency, database connections, and resource utilization.
+
+#### Proactive Alerting on Data & System Issues
+
+- Configure alerts in Prometheus and Alertmanager to be notified of potential problems. This could include failed job runs reported in the OpenLineage metadata, or system-level issues like high CPU usage, before they impact your data consumers.
+
+</details>
+
 ---
 
 ## 🚀 Hands-On Labs & Projects 🚀
@@ -550,18 +610,22 @@ Before running any commands, configure your shell environment by uncommenting an
 
 This is the standard method and launches all services together on a shared network.
 
+> 💡Although it demonstrates deploying all environments, you may choose to exclude one or more. Note, however, that Apache Pinot depends on the ZooKeeper service included in the Kpow stack.
+
 **To Start All Services:**
 
 ```bash
 docker compose -p kpow -f ./compose-kpow.yml up -d \
   && docker compose -p flex -f ./compose-flex.yml up -d \
-  && docker compose -p pinot -f compose-pinot.yml up -d
+  && docker compose -p pinot -f compose-pinot.yml up -d \
+  && docker compose -p obsv -f ./compose-obsv.yml up -d
 ```
 
 **To Stop All Services:**
 
 ```bash
-docker compose -p pinot -f compose-pinot.yml down \
+docker compose -p obsv -f ./compose-obsv.yml down \
+  && docker compose -p pinot -f compose-pinot.yml down \
   && docker compose -p flex -f ./compose-flex.yml down \
   && docker compose -p kpow -f ./compose-kpow.yml down
 ```
@@ -584,7 +648,7 @@ This command creates a dedicated Docker network for the Flex stack instead of us
 USE_EXT=false docker compose -p flex -f ./compose-flex.yml up -d
 ```
 
-> **Note:** Apache Pinot cannot be started on its own because it depends on the ZooKeeper service included in the Kpow stack.
+> 💡 Note again that Apache Pinot cannot be started on its own because it depends on the ZooKeeper service included in the Kpow stack.
 
 **To Stop Individual Services:**
 
@@ -659,6 +723,19 @@ _(**Note:** The `taskmanager-*` and `mc` services run in the background and do n
 | `pinot-controller` | `19000:9000`             | Apache Pinot Controller (manages cluster state, UI/API)     |
 | `pinot-broker`     | `18099:8099`             | Apache Pinot Broker (handles query routing and results)     |
 | `pinot-server`     | `18098:8098`             | Apache Pinot Server (hosts data segments, executes queries) |
+
+Of course, here is a summary table for the OpenLineage and observability stack:
+
+### OpenLineage with Marquez & Prometheus
+
+| Service Name   | Port(s) (Host:Container) | Description                                               |
+| :------------- | :----------------------- | :-------------------------------------------------------- |
+| `marquez-web`  | `3003:3000`              | Marquez Web UI (visualizes OpenLineage data)              |
+| `marquez-api`  | `5000:5000`, `5001:5001` | Marquez backend and OpenLineage API endpoint              |
+| `marquez-db`   | `5433:5432`              | PostgreSQL database for Marquez metadata                  |
+| `prometheus`   | `19090:9090`             | Prometheus (metrics collection and database)              |
+| `alertmanager` | `19093:9093`             | Alertmanager (handles alerts from Prometheus)             |
+| `grafana`      | `3004:3000`              | Grafana (platform for metrics visualization & dashboards) |
 
 ## 📌 Further Configuration
 
