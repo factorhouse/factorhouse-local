@@ -1,0 +1,18 @@
+scrape_configs:
+  - job_name: "flink"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets:
+          - "jobmanager:9249"
+          - "taskmanager-1:9249"
+          - "taskmanager-2:9249"
+          - "taskmanager-3:9249"
+
+# rule_files:
+#   - <alert-rules>.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
