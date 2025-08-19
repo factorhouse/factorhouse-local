@@ -47,6 +47,47 @@ services:
     depends_on:
       - marquez-api
 
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "19090:9090"
+    networks:
+      - factorhouse
+    volumes:
+      - ./resources/prometheus/prometheus${KPOW_SUFFIX:-}.yml:/etc/prometheus/prometheus.yml
+      - ./resources/kpow/prometheus/kpow-rules.yml:/etc/prometheus/kpow-rules.yml
+      - ./resources/flex/prometheus/flex-rules.yml:/etc/prometheus/flex-rules.yml
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: alertmanager
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+    ports:
+      - "19093:9093"
+    networks:
+      - factorhouse
+    volumes:
+      - ./resources/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    container_name: grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3004:3000"
+    networks:
+      - factorhouse
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./resources/grafana:/etc/grafana/provisioning
+
 networks:
   factorhouse:
     external: ${USE_EXT:-true}

@@ -1,0 +1,44 @@
+## Note: All Flex metrics are prefixed by 'flex_'!
+groups:
+  - name: FlexAlerts
+    rules:
+      - alert: FlinkJobFailed
+        expr: increase(flex_flink_jobs_failed[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "A Flink job on {{ $labels.instance }} has failed (monitored by Flex)"
+          description: "The total number of failed Flink jobs has increased. Check the Flex UI and logs for the root cause."
+      - alert: FlinkTaskManagerHighHeapUsage
+        expr: (flex_flink_taskmanager_heap_used / flex_flink_taskmanager_heap_max) * 100 > 90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Flink TaskManager ({{ $labels.target }}) high heap usage (monitored by Flex)"
+          description: "A Flink TaskManager has been using over 90% of its heap memory for 10 minutes. Current usage is {{ $value | humanize }}%."
+      - alert: FlinkNoJobsRunning
+        expr: flex_flink_jobs_running == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No Flink jobs on {{ $labels.instance }} are running (monitored by Flex)"
+          description: "The number of running Flink jobs has been 0 for 5 minutes. This may be an unintended state."
+      - alert: FlinkNoAvailableSlots
+        expr: flex_flink_taskmanagers_slots_available == 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Flink cluster on {{ $labels.instance }} has no available task slots (monitored by Flex)"
+          description: "The Flink cluster has had 0 available task slots for 15 minutes, indicating it is at maximum capacity."
+      - alert: FlexDown
+        expr: up{job="flex"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Flex is down"
+          description: "Flex instance {{ $labels.instance }} has been down for more than 1 minute."

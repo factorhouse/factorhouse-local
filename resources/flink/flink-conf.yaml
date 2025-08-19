@@ -29,6 +29,11 @@ fs.s3a.endpoint: http://minio:9000
 fs.s3a.path.style.access: true
 fs.s3a.connection.ssl.enabled: false
 
+# Metrics
+metrics.reporters: prom
+metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+metrics.reporter.prom.port: 9249
+
 # Add this line to resolve dependency conflicts between Flink's core and its connectors.
 classloader.resolve-order: parent-first
 
