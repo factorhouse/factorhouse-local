@@ -57,9 +57,12 @@ services:
     networks:
       - factorhouse
     volumes:
-      - ./resources/prometheus/prometheus${KPOW_SUFFIX:-}.yml:/etc/prometheus/prometheus.yml
-      - ./resources/kpow/prometheus/kpow-rules.yml:/etc/prometheus/kpow-rules.yml
-      - ./resources/flex/prometheus/flex-rules.yml:/etc/prometheus/flex-rules.yml
+      - ./resources/kpow/prometheus/kpow-scrap-config${KPOW_SUFFIX:-}.yml:/etc/prometheus/scrape_configs/kpow-scrap-config.yml
+      - ./resources/kpow/prometheus/kpow-rules${KPOW_SUFFIX:-}.yml:/etc/prometheus/rules/kpow-rules.yml
+      - ./resources/flex/prometheus/flex-scrap-config${FLEX_SUFFIX:-}.yml:/etc/prometheus/scrape_configs/flex-scrap-config.yml
+      - ./resources/flex/prometheus/flex-rules${FLEX_SUFFIX:-}.yml:/etc/prometheus/rules/flex-rules.yml
+      - ./resources/flink/prometheus/flink-scrap-config.yml:/etc/prometheus/scrape_configs/flink-scrap-config.yml
+      - ./resources/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
   alertmanager:
     image: prom/alertmanager:v0.28.1
