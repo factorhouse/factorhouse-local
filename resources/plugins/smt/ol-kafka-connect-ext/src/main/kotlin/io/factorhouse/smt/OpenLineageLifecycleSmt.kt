@@ -144,9 +144,9 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
         this.jobName = originalJobName
         logger.info("OpenLineage SMT configuring for job '$jobName'.")
 
-        val lineageUri = URI(System.getenv("OPENLINEAGE_URL") ?: "http://localhost:5000")
-        jobNamespace = System.getenv("OPENLINEAGE_NAMESPACE") ?: "kafka-connect"
-        kafkaNamespace = System.getenv("CONNECT_BOOTSTRAP_SERVERS")?.split(",")?.firstOrNull() ?: "localhost:9092"
+        val lineageUri = URI(System.getenv("OPENLINEAGE_URL") ?: "http://marquez-api:5000")
+        jobNamespace = System.getenv("OPENLINEAGE_NAMESPACE") ?: "fh-local"
+        kafkaNamespace = "kafka://${System.getenv("BOOTSTRAP") ?: "kafka-1:19092"}"
 
         ol = OpenLineage(URI.create("https://github.com/OpenLineage/OpenLineage"))
         transport = HttpTransport.builder().uri(lineageUri).build()
@@ -355,7 +355,7 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
 
     private fun buildKafkaDataset(topicName: String): OpenLineage.Dataset {
         val schemaFacet = buildSchemaFacet(topicName)
-        val dsFacet = ol.newDatasourceDatasetFacet("kafka", URI.create("kafka://$kafkaNamespace"))
+        val dsFacet = ol.newDatasourceDatasetFacet("kafka", URI.create(kafkaNamespace))
         val facets =
             ol
                 .newDatasetFacetsBuilder()
@@ -422,10 +422,20 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
             if (parsedSchema.schemaType() == "AVRO") {
                 val avroSchema = parsedSchema.rawSchema() as Schema
                 avroSchema.fields.map { field ->
+                    val fieldSchema = field.schema()
+                    val fieldType: String
+                    // Unwrap nullable union types to get the base type.
+                    if (fieldSchema.isUnion) {
+                        val nonNullType = fieldSchema.types.find { it.type != Schema.Type.NULL }
+                        fieldType = nonNullType?.type?.name ?: fieldSchema.type.name
+                    } else {
+                        fieldType = fieldSchema.type.name
+                    }
+
                     ol
                         .newSchemaDatasetFacetFieldsBuilder()
-                        .name("($type) ${field.name()}")
-                        .type(field.schema().type.name)
+                        .name(field.name())
+                        .type(fieldType.lowercase())
                         .build()
                 }
             } else {

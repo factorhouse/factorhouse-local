@@ -66,6 +66,7 @@ services:
       ## Config for OpenLineage
       OPENLINEAGE_URL: http://marquez-api:5000
       OPENLINEAGE_NAMESPACE: fh-local
+      KAFKA_BOOTSTRAP: "kafka-1:19092"
     volumes:
       - ./resources/deps/kafka/connector:/etc/kafka-connect/jars
       - ./resources/kpow/plugins:/etc/kafka-connect/plugins
