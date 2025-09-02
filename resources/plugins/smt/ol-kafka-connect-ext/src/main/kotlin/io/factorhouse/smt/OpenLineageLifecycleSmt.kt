@@ -26,10 +26,12 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
     private lateinit var runId: UUID
     private lateinit var connectorClass: String
     private lateinit var topics: List<String>
+    private lateinit var icebergTables: List<String>
 
     // Sink-specific properties
     private var s3Bucket: String? = null
     private var icebergCatalog: String? = null
+    private var icebergCatalogUri: String? = null
 
     // State Machine Flags
     private var isConfigured: Boolean = false
@@ -50,6 +52,8 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
         private const val TOPICS_CONFIG = "topics"
         private const val S3_BUCKET_CONFIG = "s3.bucket.name"
         private const val ICEBERG_CATALOG_CONFIG = "iceberg.catalog"
+        private const val ICEBERG_CATALOG_URI_CONFIG = "iceberg.catalog.uri"
+        private const val ICEBERG_TABLES_CONFIG = "iceberg.tables"
 
         val CONFIG_DEF: ConfigDef =
             ConfigDef()
@@ -83,6 +87,18 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
                     "",
                     ConfigDef.Importance.MEDIUM,
                     "The Iceberg catalog name for Iceberg sink connectors.",
+                ).define(
+                    ICEBERG_CATALOG_URI_CONFIG,
+                    ConfigDef.Type.STRING,
+                    "",
+                    ConfigDef.Importance.MEDIUM,
+                    "The full URI of the Iceberg catalog (e.g., thrift://localhost:9083).",
+                ).define(
+                    ICEBERG_TABLES_CONFIG,
+                    ConfigDef.Type.STRING,
+                    "",
+                    ConfigDef.Importance.MEDIUM,
+                    "Comma-separated list of target Iceberg tables, corresponding to the 'topics' list.",
                 ).define(
                     KEY_PREFIX + "schema.read",
                     ConfigDef.Type.BOOLEAN,
@@ -159,6 +175,12 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
             ?.filter { it.isNotEmpty() } ?: emptyList()
         this.s3Bucket = configs[S3_BUCKET_CONFIG]?.toString()
         this.icebergCatalog = configs[ICEBERG_CATALOG_CONFIG]?.toString()
+        this.icebergCatalogUri = configs[ICEBERG_CATALOG_URI_CONFIG]?.toString()
+        this.icebergTables = configs[ICEBERG_TABLES_CONFIG]
+            ?.toString()
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() } ?: emptyList()
 
         this.readKeySchema = configs[KEY_PREFIX + "schema.read"]?.toString()?.toBoolean() ?: false
         this.readValueSchema = configs[VALUE_PREFIX + "schema.read"]?.toString()?.toBoolean() ?: true
@@ -322,32 +344,32 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
                         .schema(inputTopicSchema)
                         .dataSource(dsFacet)
                         .build()
-                listOf(
+                topics.map { topic ->
                     ol
                         .newOutputDatasetBuilder()
                         .namespace("s3://$bucket")
-                        .name(bucket)
+                        .name(topic)
                         .facets(facets)
-                        .build(),
-                )
+                        .build()
+                }
             }
             isSink("IcebergSink") -> {
-                val catalog = this.icebergCatalog ?: "unknown"
-                val dsFacet = ol.newDatasourceDatasetFacet("iceberg", URI.create("iceberg://$catalog"))
+                val icebergNamespace = this.icebergCatalogUri ?: "iceberg://${this.icebergCatalog ?: "unknown"}"
+                val dsFacet = ol.newDatasourceDatasetFacet("iceberg", URI.create(icebergNamespace))
                 val facets =
                     ol
                         .newDatasetFacetsBuilder()
                         .schema(inputTopicSchema)
                         .dataSource(dsFacet)
                         .build()
-                listOf(
+                icebergTables.map { table ->
                     ol
                         .newOutputDatasetBuilder()
-                        .namespace("iceberg://$catalog")
-                        .name(catalog)
+                        .namespace(icebergNamespace)
+                        .name(table)
                         .facets(facets)
-                        .build(),
-                )
+                        .build()
+                }
             }
             else -> emptyList()
         }
