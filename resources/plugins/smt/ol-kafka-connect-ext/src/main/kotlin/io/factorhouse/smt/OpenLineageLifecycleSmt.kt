@@ -191,29 +191,37 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
     }
 
     override fun apply(record: R): R {
-        if (!isConfigured) return record
+        if (!isConfigured || hasEmittedStartEvent) {
+            return record
+        }
 
-        // On first deployment, schemas may not yet exist, so OpenLineage emission waits until all schemas are available.
-        // This ensures the initial dataset versions align with the schema registry.
-        // On subsequent deployments, however, schemas may have changed.
-        // Currently, only schema existence is checked, not their correctness, which can result in outdated schemas being used for dataset version creation.
-        // Additional logic is needed to ensure the correct, up-to-date schemas are used.
-        val schemaIsReady = checkIfSchemaIsReady()
-        if (schemaIsReady) {
-            if (!hasEmittedStartEvent) {
-                try {
-                    logger.info("First record received for job '$jobName'. Emitting minimal START event.")
-                    this.runId = UUID.randomUUID()
-                    val runningEvent = buildRichLifeCycleEvent()
+        try {
+            val schemaReadingEnabled = readKeySchema || readValueSchema
+            this.runId = UUID.randomUUID()
+            if (schemaReadingEnabled) {
+                // On first deployment, schemas may not yet exist, so OpenLineage emission waits until all schemas are available.
+                // This ensures the initial dataset versions align with the schema registry.
+                // On subsequent deployments, however, schemas may have changed.
+                // Currently, only schema existence is checked, not their correctness, which can result in outdated schemas being used for dataset version creation.
+                // Additional logic is needed to ensure the correct, up-to-date schemas are used.
+                if (checkIfSchemaIsReady()) {
+                    logger.info("Schemas are now available. Emitting rich RUNNING event for job '$jobName'.")
+                    val runningEvent = buildRichLifeCycleEvent(OpenLineage.RunEvent.EventType.RUNNING)
                     transport.emit(runningEvent)
-                    logger.info("OpenLineage RUNNING event emitted for job '$jobName' with runId '$runId'.")
+                    logger.info("OpenLineage rich RUNNING event emitted for job '$jobName' with runId '$runId'.")
                     hasEmittedStartEvent = true
-                } catch (e: Exception) {
-                    logger.error("Failed to emit OpenLineage START event for job '$jobName'", e)
+                } else {
+                    logger.info("Schema reading is enabled, but not all schemas are available yet. Deferring event emission.")
                 }
+            } else {
+                logger.info("Schema reading is disabled. Emitting minimal RUNNING event for job '$jobName'.")
+                val runningEvent = buildMinimalLifeCycleEvent(OpenLineage.RunEvent.EventType.RUNNING)
+                transport.emit(runningEvent)
+                logger.info("OpenLineage minimal RUNNING event emitted for job '$jobName' with runId '$runId'.")
+                hasEmittedStartEvent = true
             }
-        } else {
-            logger.info("Not every schema is yet to be available. OpenLineage metadata is not emitted.")
+        } catch (e: Exception) {
+            logger.error("Failed to emit OpenLineage RUNNING event for job '$jobName'", e)
         }
 
         try {
@@ -303,13 +311,13 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
             ).build()
     }
 
-    private fun buildRichLifeCycleEvent(): OpenLineage.RunEvent {
+    private fun buildRichLifeCycleEvent(eventType: OpenLineage.RunEvent.EventType): OpenLineage.RunEvent {
         val jobTypeFacet = ol.newJobTypeJobFacet("STREAMING", "KAFKA_CONNECT", "CUSTOM_CONNECTOR_TASK")
 
         return ol
             .newRunEventBuilder()
             .eventTime(ZonedDateTime.now(ZoneOffset.UTC))
-            .eventType(OpenLineage.RunEvent.EventType.RUNNING) // This method is now only for RUNNING events
+            .eventType(eventType)
             .run(ol.newRunBuilder().runId(this.runId).build())
             .job(
                 ol
