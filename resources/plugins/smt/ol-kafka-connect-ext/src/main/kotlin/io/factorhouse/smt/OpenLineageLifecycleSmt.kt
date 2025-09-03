@@ -26,10 +26,12 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
     private lateinit var runId: UUID
     private lateinit var connectorClass: String
     private lateinit var topics: List<String>
+    private lateinit var icebergTables: List<String>
 
     // Sink-specific properties
     private var s3Bucket: String? = null
     private var icebergCatalog: String? = null
+    private var icebergCatalogUri: String? = null
 
     // State Machine Flags
     private var isConfigured: Boolean = false
@@ -50,6 +52,8 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
         private const val TOPICS_CONFIG = "topics"
         private const val S3_BUCKET_CONFIG = "s3.bucket.name"
         private const val ICEBERG_CATALOG_CONFIG = "iceberg.catalog"
+        private const val ICEBERG_CATALOG_URI_CONFIG = "iceberg.catalog.uri"
+        private const val ICEBERG_TABLES_CONFIG = "iceberg.tables"
 
         val CONFIG_DEF: ConfigDef =
             ConfigDef()
@@ -83,6 +87,18 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
                     "",
                     ConfigDef.Importance.MEDIUM,
                     "The Iceberg catalog name for Iceberg sink connectors.",
+                ).define(
+                    ICEBERG_CATALOG_URI_CONFIG,
+                    ConfigDef.Type.STRING,
+                    "",
+                    ConfigDef.Importance.MEDIUM,
+                    "The full URI of the Iceberg catalog (e.g., thrift://localhost:9083).",
+                ).define(
+                    ICEBERG_TABLES_CONFIG,
+                    ConfigDef.Type.STRING,
+                    "",
+                    ConfigDef.Importance.MEDIUM,
+                    "Comma-separated list of target Iceberg tables, corresponding to the 'topics' list.",
                 ).define(
                     KEY_PREFIX + "schema.read",
                     ConfigDef.Type.BOOLEAN,
@@ -144,9 +160,9 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
         this.jobName = originalJobName
         logger.info("OpenLineage SMT configuring for job '$jobName'.")
 
-        val lineageUri = URI(System.getenv("OPENLINEAGE_URL") ?: "http://localhost:5000")
-        jobNamespace = System.getenv("OPENLINEAGE_NAMESPACE") ?: "kafka-connect"
-        kafkaNamespace = System.getenv("CONNECT_BOOTSTRAP_SERVERS")?.split(",")?.firstOrNull() ?: "localhost:9092"
+        val lineageUri = URI(System.getenv("OPENLINEAGE_URL") ?: "http://marquez-api:5000")
+        jobNamespace = System.getenv("OPENLINEAGE_NAMESPACE") ?: "fh-local"
+        kafkaNamespace = "kafka://${System.getenv("BOOTSTRAP") ?: "kafka-1:19092"}"
 
         ol = OpenLineage(URI.create("https://github.com/OpenLineage/OpenLineage"))
         transport = HttpTransport.builder().uri(lineageUri).build()
@@ -159,6 +175,12 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
             ?.filter { it.isNotEmpty() } ?: emptyList()
         this.s3Bucket = configs[S3_BUCKET_CONFIG]?.toString()
         this.icebergCatalog = configs[ICEBERG_CATALOG_CONFIG]?.toString()
+        this.icebergCatalogUri = configs[ICEBERG_CATALOG_URI_CONFIG]?.toString()
+        this.icebergTables = configs[ICEBERG_TABLES_CONFIG]
+            ?.toString()
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() } ?: emptyList()
 
         this.readKeySchema = configs[KEY_PREFIX + "schema.read"]?.toString()?.toBoolean() ?: false
         this.readValueSchema = configs[VALUE_PREFIX + "schema.read"]?.toString()?.toBoolean() ?: true
@@ -169,29 +191,37 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
     }
 
     override fun apply(record: R): R {
-        if (!isConfigured) return record
+        if (!isConfigured || hasEmittedStartEvent) {
+            return record
+        }
 
-        // On first deployment, schemas may not yet exist, so OpenLineage emission waits until all schemas are available.
-        // This ensures the initial dataset versions align with the schema registry.
-        // On subsequent deployments, however, schemas may have changed.
-        // Currently, only schema existence is checked, not their correctness, which can result in outdated schemas being used for dataset version creation.
-        // Additional logic is needed to ensure the correct, up-to-date schemas are used.
-        val schemaIsReady = checkIfSchemaIsReady()
-        if (schemaIsReady) {
-            if (!hasEmittedStartEvent) {
-                try {
-                    logger.info("First record received for job '$jobName'. Emitting minimal START event.")
-                    this.runId = UUID.randomUUID()
-                    val runningEvent = buildRichLifeCycleEvent()
+        try {
+            val schemaReadingEnabled = readKeySchema || readValueSchema
+            this.runId = UUID.randomUUID()
+            if (schemaReadingEnabled) {
+                // On first deployment, schemas may not yet exist, so OpenLineage emission waits until all schemas are available.
+                // This ensures the initial dataset versions align with the schema registry.
+                // On subsequent deployments, however, schemas may have changed.
+                // Currently, only schema existence is checked, not their correctness, which can result in outdated schemas being used for dataset version creation.
+                // Additional logic is needed to ensure the correct, up-to-date schemas are used.
+                if (checkIfSchemaIsReady()) {
+                    logger.info("Schemas are now available. Emitting rich RUNNING event for job '$jobName'.")
+                    val runningEvent = buildRichLifeCycleEvent(OpenLineage.RunEvent.EventType.RUNNING)
                     transport.emit(runningEvent)
-                    logger.info("OpenLineage RUNNING event emitted for job '$jobName' with runId '$runId'.")
+                    logger.info("OpenLineage rich RUNNING event emitted for job '$jobName' with runId '$runId'.")
                     hasEmittedStartEvent = true
-                } catch (e: Exception) {
-                    logger.error("Failed to emit OpenLineage START event for job '$jobName'", e)
+                } else {
+                    logger.info("Schema reading is enabled, but not all schemas are available yet. Deferring event emission.")
                 }
+            } else {
+                logger.info("Schema reading is disabled. Emitting minimal RUNNING event for job '$jobName'.")
+                val runningEvent = buildMinimalLifeCycleEvent(OpenLineage.RunEvent.EventType.RUNNING)
+                transport.emit(runningEvent)
+                logger.info("OpenLineage minimal RUNNING event emitted for job '$jobName' with runId '$runId'.")
+                hasEmittedStartEvent = true
             }
-        } else {
-            logger.info("Not every schema is yet to be available. OpenLineage metadata is not emitted.")
+        } catch (e: Exception) {
+            logger.error("Failed to emit OpenLineage RUNNING event for job '$jobName'", e)
         }
 
         try {
@@ -281,13 +311,13 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
             ).build()
     }
 
-    private fun buildRichLifeCycleEvent(): OpenLineage.RunEvent {
+    private fun buildRichLifeCycleEvent(eventType: OpenLineage.RunEvent.EventType): OpenLineage.RunEvent {
         val jobTypeFacet = ol.newJobTypeJobFacet("STREAMING", "KAFKA_CONNECT", "CUSTOM_CONNECTOR_TASK")
 
         return ol
             .newRunEventBuilder()
             .eventTime(ZonedDateTime.now(ZoneOffset.UTC))
-            .eventType(OpenLineage.RunEvent.EventType.RUNNING) // This method is now only for RUNNING events
+            .eventType(eventType)
             .run(ol.newRunBuilder().runId(this.runId).build())
             .job(
                 ol
@@ -322,32 +352,32 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
                         .schema(inputTopicSchema)
                         .dataSource(dsFacet)
                         .build()
-                listOf(
+                topics.map { topic ->
                     ol
                         .newOutputDatasetBuilder()
                         .namespace("s3://$bucket")
-                        .name(bucket)
+                        .name(topic)
                         .facets(facets)
-                        .build(),
-                )
+                        .build()
+                }
             }
             isSink("IcebergSink") -> {
-                val catalog = this.icebergCatalog ?: "unknown"
-                val dsFacet = ol.newDatasourceDatasetFacet("iceberg", URI.create("iceberg://$catalog"))
+                val icebergNamespace = this.icebergCatalogUri ?: "iceberg://${this.icebergCatalog ?: "unknown"}"
+                val dsFacet = ol.newDatasourceDatasetFacet("iceberg", URI.create(icebergNamespace))
                 val facets =
                     ol
                         .newDatasetFacetsBuilder()
                         .schema(inputTopicSchema)
                         .dataSource(dsFacet)
                         .build()
-                listOf(
+                icebergTables.map { table ->
                     ol
                         .newOutputDatasetBuilder()
-                        .namespace("iceberg://$catalog")
-                        .name(catalog)
+                        .namespace(icebergNamespace)
+                        .name(table)
                         .facets(facets)
-                        .build(),
-                )
+                        .build()
+                }
             }
             else -> emptyList()
         }
@@ -355,7 +385,7 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
 
     private fun buildKafkaDataset(topicName: String): OpenLineage.Dataset {
         val schemaFacet = buildSchemaFacet(topicName)
-        val dsFacet = ol.newDatasourceDatasetFacet("kafka", URI.create("kafka://$kafkaNamespace"))
+        val dsFacet = ol.newDatasourceDatasetFacet("kafka", URI.create(kafkaNamespace))
         val facets =
             ol
                 .newDatasetFacetsBuilder()
@@ -422,10 +452,20 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
             if (parsedSchema.schemaType() == "AVRO") {
                 val avroSchema = parsedSchema.rawSchema() as Schema
                 avroSchema.fields.map { field ->
+                    val fieldSchema = field.schema()
+                    val fieldType: String
+                    // Unwrap nullable union types to get the base type.
+                    if (fieldSchema.isUnion) {
+                        val nonNullType = fieldSchema.types.find { it.type != Schema.Type.NULL }
+                        fieldType = nonNullType?.type?.name ?: fieldSchema.type.name
+                    } else {
+                        fieldType = fieldSchema.type.name
+                    }
+
                     ol
                         .newSchemaDatasetFacetFieldsBuilder()
-                        .name("($type) ${field.name()}")
-                        .type(field.schema().type.name)
+                        .name(field.name())
+                        .type(fieldType.lowercase())
                         .build()
                 }
             } else {
