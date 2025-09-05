@@ -26,12 +26,10 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
     private lateinit var runId: UUID
     private lateinit var connectorClass: String
     private lateinit var topics: List<String>
-    private lateinit var icebergTables: List<String>
+    private lateinit var datasetNames: List<String>
 
     // Sink-specific properties
-    private var s3Bucket: String? = null
-    private var icebergCatalog: String? = null
-    private var icebergCatalogUri: String? = null
+    private var datasetNamespace: String? = null
 
     // State Machine Flags
     private var isConfigured: Boolean = false
@@ -50,10 +48,8 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
         private const val CONNECTOR_NAME_CONFIG = "connector.name"
         private const val CONNECTOR_CLASS_CONFIG = "connector.class"
         private const val TOPICS_CONFIG = "topics"
-        private const val S3_BUCKET_CONFIG = "s3.bucket.name"
-        private const val ICEBERG_CATALOG_CONFIG = "iceberg.catalog"
-        private const val ICEBERG_CATALOG_URI_CONFIG = "iceberg.catalog.uri"
-        private const val ICEBERG_TABLES_CONFIG = "iceberg.tables"
+        private const val DATASET_NAMESPACE_CONFIG = "dataset.namespace"
+        private const val DATASET_NAMES_CONFIG = "dataset.names"
 
         val CONFIG_DEF: ConfigDef =
             ConfigDef()
@@ -76,29 +72,17 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
                     ConfigDef.Importance.HIGH,
                     "Comma-separated list of Kafka topics used by the connector.",
                 ).define(
-                    S3_BUCKET_CONFIG,
+                    DATASET_NAMESPACE_CONFIG,
                     ConfigDef.Type.STRING,
                     "",
                     ConfigDef.Importance.MEDIUM,
-                    "The S3 bucket name for S3 sink connectors.",
+                    "The dataset namespace of a sink connector",
                 ).define(
-                    ICEBERG_CATALOG_CONFIG,
+                    DATASET_NAMES_CONFIG,
                     ConfigDef.Type.STRING,
                     "",
                     ConfigDef.Importance.MEDIUM,
-                    "The Iceberg catalog name for Iceberg sink connectors.",
-                ).define(
-                    ICEBERG_CATALOG_URI_CONFIG,
-                    ConfigDef.Type.STRING,
-                    "",
-                    ConfigDef.Importance.MEDIUM,
-                    "The full URI of the Iceberg catalog (e.g., thrift://localhost:9083).",
-                ).define(
-                    ICEBERG_TABLES_CONFIG,
-                    ConfigDef.Type.STRING,
-                    "",
-                    ConfigDef.Importance.MEDIUM,
-                    "Comma-separated list of target Iceberg tables, corresponding to the 'topics' list.",
+                    "Comma-separated list of dataset names corresponding to 'topics' list.",
                 ).define(
                     KEY_PREFIX + "schema.read",
                     ConfigDef.Type.BOOLEAN,
@@ -173,10 +157,8 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
             ?.split(",")
             ?.map { it.trim() }
             ?.filter { it.isNotEmpty() } ?: emptyList()
-        this.s3Bucket = configs[S3_BUCKET_CONFIG]?.toString()
-        this.icebergCatalog = configs[ICEBERG_CATALOG_CONFIG]?.toString()
-        this.icebergCatalogUri = configs[ICEBERG_CATALOG_URI_CONFIG]?.toString()
-        this.icebergTables = configs[ICEBERG_TABLES_CONFIG]
+        this.datasetNamespace = configs[DATASET_NAMESPACE_CONFIG]?.toString()
+        this.datasetNames = configs[DATASET_NAMES_CONFIG]
             ?.toString()
             ?.split(",")
             ?.map { it.trim() }
@@ -344,8 +326,8 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
         return when {
             isSource() -> topics.map { topic -> buildKafkaDataset(topic) as OpenLineage.OutputDataset }
             isSink("S3Sink") -> {
-                val bucket = this.s3Bucket ?: "unknown"
-                val dsFacet = ol.newDatasourceDatasetFacet("s3", URI.create("s3://$bucket"))
+                val dsNamespace = this.datasetNamespace ?: "unknown"
+                val dsFacet = ol.newDatasourceDatasetFacet("s3", URI.create(dsNamespace))
                 val facets =
                     ol
                         .newDatasetFacetsBuilder()
@@ -355,26 +337,26 @@ class OpenLineageLifecycleSmt<R : ConnectRecord<R>> : Transformation<R> {
                 topics.map { topic ->
                     ol
                         .newOutputDatasetBuilder()
-                        .namespace("s3://$bucket")
+                        .namespace(dsNamespace)
                         .name(topic)
                         .facets(facets)
                         .build()
                 }
             }
             isSink("IcebergSink") -> {
-                val icebergNamespace = this.icebergCatalogUri ?: "iceberg://${this.icebergCatalog ?: "unknown"}"
-                val dsFacet = ol.newDatasourceDatasetFacet("iceberg", URI.create(icebergNamespace))
+                val dsNamespace = this.datasetNamespace ?: "unknown"
+                val dsFacet = ol.newDatasourceDatasetFacet("iceberg", URI.create(dsNamespace))
                 val facets =
                     ol
                         .newDatasetFacetsBuilder()
                         .schema(inputTopicSchema)
                         .dataSource(dsFacet)
                         .build()
-                icebergTables.map { table ->
+                datasetNames.map { ds ->
                     ol
                         .newOutputDatasetBuilder()
-                        .namespace(icebergNamespace)
-                        .name(table)
+                        .namespace(dsNamespace)
+                        .name(ds)
                         .facets(facets)
                         .build()
                 }
