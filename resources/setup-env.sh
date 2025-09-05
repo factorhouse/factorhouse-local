@@ -26,8 +26,8 @@ JAR_PATH=$SCRIPT_PATH/deps
 rm -rf $JAR_PATH \
   && mkdir -p $JAR_PATH/flink/connector -p $JAR_PATH/flink/hive \
     -p $JAR_PATH/flink/iceberg -p $JAR_PATH/flink/parquet \
-    -p $JAR_PATH/hadoop -p $JAR_PATH/hms \
-    -p $JAR_PATH/kafka/connector -p $JAR_PATH/spark/iceberg
+    -p $JAR_PATH/hadoop -p $JAR_PATH/hms -p $JAR_PATH/kafka/connector \
+    -p $JAR_PATH/spark/iceberg -p $JAR_PATH/spark/lineage
 
 ####
 #### Kafka connectors
@@ -214,13 +214,13 @@ curl --silent -o $HMS_PATH/postgresql-42.7.3.jar \
 flag_time_taken
 
 ####
-#### Spark Iceberg dependencies
+#### Spark Iceberg/OpenLineage dependencies
 ####
 echo ""
-echo "▶️  Downloading Spark Iceberg dependencies..."
+echo "▶️  Downloading Spark Iceberg/OpenLineage dependencies..."
 
 START_TIME=$(date +%s)
-TOTAL_STEPS=2
+TOTAL_STEPS=3
 CURRENT_STEP=0
 
 SPARK_ICEBERG_PATH=$JAR_PATH/spark/iceberg
@@ -231,6 +231,12 @@ curl --silent -o $SPARK_ICEBERG_PATH/iceberg-spark-runtime-3.5_2.12-1.8.1.jar \
 
 curl --silent -o $SPARK_ICEBERG_PATH/iceberg-aws-bundle-1.8.1.jar \
   https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.8.1/iceberg-aws-bundle-1.8.1.jar
+((CURRENT_STEP++)); progress_bar
+
+SPARK_LINEAGE_PATH=$JAR_PATH/spark/lineage
+
+curl --silent -o $SPARK_LINEAGE_PATH/openlineage-spark_2.12-1.37.0.jar \
+  https://repo1.maven.org/maven2/io/openlineage/openlineage-spark_2.12/1.37.0/openlineage-spark_2.12-1.37.0.jar
 ((CURRENT_STEP++)); progress_bar
 
 flag_time_taken

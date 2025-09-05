@@ -245,9 +245,10 @@ services:
       - ./resources/spark/log4j2.properties:/opt/spark/conf/log4j2.properties:ro
       - ./resources/spark/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./resources/spark/core-site.xml:/opt/spark/conf/core-site.xml
-      # Iceberg & Hadoop dependencies
+      # Iceberg, Hadoop & OpenLineage dependencies
       - ./resources/deps/spark/iceberg/iceberg-spark-runtime-3.5_2.12-1.8.1.jar:/opt/spark/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
       - ./resources/deps/spark/iceberg/iceberg-aws-bundle-1.8.1.jar:/opt/spark/jars/iceberg-aws-bundle-1.8.1.jar
+      - ./resources/deps/spark/lineage/openlineage-spark_2.12-1.37.0.jar:/opt/spark/jars/openlineage-spark_2.12-1.37.0.jar
       - ./resources/deps/hadoop/hadoop-aws-3.3.6.jar:/opt/spark/jars/hadoop-aws-3.3.6.jar
       - ./resources/deps/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
       - ./resources/deps/hadoop/hadoop-common-3.3.6.jar:/opt/spark/jars/hadoop-common-3.3.6.jar
