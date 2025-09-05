@@ -520,9 +520,9 @@ Core services like Flink, Spark, and Kafka Connect are designed to be modular an
 ⏳ Progress : [##################################################] 100%
 ✅ Download complete in 0m 36s!
 
-▶️  Downloading Spark Iceberg dependencies...
+▶️  Downloading Spark Iceberg/OpenLineage dependencies...
 ⏳ Progress : [##################################################] 100%
-✅ Download complete in 0m 11s!
+✅ Download complete in 0m 14s!
 ```
 
 ### Update Kpow and Flex Licenses
