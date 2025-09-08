@@ -365,7 +365,7 @@ This is a widely-used, powerful open-source stack for monitoring and alerting.
 
 <details>
 
-<summary><b style="font-size: 1.2em;">🧪 Factor House Local Labs 🧪</b></summary>
+<summary><b style="font-size: 1.2em;">Factor House Local Labs</b></summary>
 
 <br>
 
@@ -375,7 +375,7 @@ Each lab is designed to be modular, hands-on, and production-inspired, helping y
 
 <div align="center">
 <a href="https://github.com/factorhouse/examples/tree/main/fh-local-labs" target="_blank" rel="noopener noreferrer">
-  <img src="./images/fh-local-labs.png" alt="Factor House Local Labs" width="600"/>
+  <img src="https://raw.githubusercontent.com/factorhouse/examples/refs/heads/main/images/fh-local-labs.png" alt="Factor House Local Labs" width="600"/>
 </a>
 
 <br>
@@ -388,7 +388,7 @@ Each lab is designed to be modular, hands-on, and production-inspired, helping y
 
 <details>
 
-<summary><b style="font-size: 1.2em;">🎮 Mobile Game Top K Analytics 🎮</b></summary>
+<summary><b style="font-size: 1.2em;">Mobile Game Top K Analytics</b></summary>
 
 <br>
 
@@ -396,7 +396,7 @@ This project walks through how to build a complete real-time analytics pipeline 
 
 <div align="center">
 <a href="https://github.com/factorhouse/examples/tree/main/projects/mobile-game-top-k-analytics" target="_blank" rel="noopener noreferrer">
-  <img src="./images/mobile-game-top-k-analytics.gif" alt="Mobile Game Top K Analytics" width="600"/>
+  <img src="https://raw.githubusercontent.com/factorhouse/examples/refs/heads/main/projects/mobile-game-top-k-analytics/images/mobile-game-top-k-analytics.gif" alt="Mobile Game Top K Analytics" width="600"/>
 </a>
 
 <br>
@@ -409,7 +409,7 @@ This project walks through how to build a complete real-time analytics pipeline 
 
 <details>
 
-<summary><b style="font-size: 1.2em;">🔄 CDC with Debezium on Real-Time theLook eCommerce Data 🗄️</b></summary>
+<summary><b style="font-size: 1.2em;">CDC with Debezium on Real-Time theLook eCommerce Data</b></summary>
 
 <br>
 
@@ -417,7 +417,7 @@ This project unlocks the power of the popular [theLook eCommerce dataset](https:
 
 <div align="center">
 <a href="https://github.com/factorhouse/examples/tree/main/projects/thelook-ecomm-cdc" target="_blank" rel="noopener noreferrer">
-  <img src="./images/thelook-datagen.gif" alt="CDC with Debezium on Real-Time theLook eCommerce Data" width="600"/>
+  <img src="https://raw.githubusercontent.com/factorhouse/examples/refs/heads/main/datagen/thelook-ecomm/images/thelook-datagen.gif" alt="CDC with Debezium on Real-Time theLook eCommerce Data" width="600"/>
 </a>
 
 <br>
@@ -427,6 +427,50 @@ This project unlocks the power of the popular [theLook eCommerce dataset](https:
 </div>
 
 </details>
+
+<details>
+
+<summary><b style="font-size: 1.2em;">A Practical Guide to Data Lineage on Kafka Connect with OpenLineage</b></summary>
+
+<br>
+
+The lab demonstrates how to capture real-time data lineage from Kafka Connect using a custom Single Message Transform (SMT) - `OpenLineageLifecycleSmt`. It builds a complete pipeline that tracks data from a source connector to S3 and Iceberg sinks, with the full lineage graph visualized in Marquez.
+
+<div align="center">
+<a href="https://github.com/factorhouse/examples/blob/main/projects/data-lineage-labs/lab1_kafka-connect.md" target="_blank" rel="noopener noreferrer">
+  <img src="https://raw.githubusercontent.com/factorhouse/examples/refs/heads/main/projects/data-lineage-labs/images/connector-lineage.gif" alt="A Practical Guide to Data Lineage on Kafka Connect with OpenLineage" width="600"/>
+</a>
+
+<br/>
+
+[**➡️ Click Here to Explore the Lab**](https://github.com/factorhouse/examples/blob/main/projects/data-lineage-labs/lab1_kafka-connect.md)
+
+</div>
+
+</details>
+
+<details>
+
+<summary><b style="font-size: 1.2em;">End-to-End Data Lineage from Kafka to Flink and Spark</b></summary>
+
+<br>
+
+An end-to-end tutorial for establishing data lineage across Kafka, Flink, Spark, and Iceberg. This lab begins by tracking data from a single Kafka topic through parallel pipelines: a Kafka S3 sink connector for raw data archival, a Flink job for real-time analytics, another Flink job for Iceberg ingestion, and a downstream Spark batch job that reads from the Iceberg table.
+
+<div align="center">
+<a href="https://github.com/factorhouse/examples/blob/main/projects/data-lineage-labs/lab2_end-to-end.md" target="_blank" rel="noopener noreferrer">
+  <img src="https://raw.githubusercontent.com/factorhouse/examples/refs/heads/main/projects/data-lineage-labs/images/end-to-end-lineage.gif" alt="End-to-End Data Lineage from Kafka to Flink and Spark" width="600"/>
+</a>
+
+<br/>
+
+[**➡️ Click Here to Explore the Lab**](https://github.com/factorhouse/examples/blob/main/projects/data-lineage-labs/lab2_end-to-end.md)
+
+</div>
+
+</details>
+
+<br/>
 
 _Stay tuned—more labs and projects are on the way!_
 
