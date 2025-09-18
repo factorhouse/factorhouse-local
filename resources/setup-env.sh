@@ -26,7 +26,7 @@ JAR_PATH=$SCRIPT_PATH/deps
 rm -rf $JAR_PATH \
   && mkdir -p $JAR_PATH/flink/connector -p $JAR_PATH/flink/hive \
     -p $JAR_PATH/flink/iceberg -p $JAR_PATH/flink/parquet \
-    -p $JAR_PATH/hadoop -p $JAR_PATH/hms -p $JAR_PATH/kafka/connector \
+    -p $JAR_PATH/hadoop -p $JAR_PATH/postgres -p $JAR_PATH/kafka/connector \
     -p $JAR_PATH/spark/iceberg -p $JAR_PATH/spark/lineage
 
 ####
@@ -76,7 +76,7 @@ echo ""
 echo "▶️  Downloading Flink connectors..."
 
 START_TIME=$(date +%s)
-TOTAL_STEPS=3
+TOTAL_STEPS=4
 CURRENT_STEP=0
 
 FLINK_CONNECTOR_PATH=$JAR_PATH/flink/connector
@@ -89,8 +89,14 @@ curl --silent -o $FLINK_CONNECTOR_PATH/flink-sql-avro-confluent-registry-1.20.1.
   https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-avro-confluent-registry/1.20.1/flink-sql-avro-confluent-registry-1.20.1.jar
 ((CURRENT_STEP++)); progress_bar
 
-curl --silent -L -o $FLINK_CONNECTOR_PATH/flink-faker-0.5.3.jar \
-  https://github.com/knaufk/flink-faker/releases/download/v0.5.3/flink-faker-0.5.3.jar
+curl --silent -L -o $FLINK_CONNECTOR_PATH/flink-connector-jdbc-3.3.0-1.20.jar \
+  https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-jdbc/3.3.0-1.20/flink-connector-jdbc-3.3.0-1.20.jar
+((CURRENT_STEP++)); progress_bar
+
+POSTGRES_PATH=$JAR_PATH/postgres
+
+curl --silent -o $POSTGRES_PATH/postgresql-42.7.3.jar \
+  https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar
 ((CURRENT_STEP++)); progress_bar
 
 flag_time_taken
@@ -160,7 +166,7 @@ echo ""
 echo "▶️  Downloading Hadoop/Hive Metastore dependencies..."
 
 START_TIME=$(date +%s)
-TOTAL_STEPS=11
+TOTAL_STEPS=10
 CURRENT_STEP=0
 
 HADOOP_PATH=$JAR_PATH/hadoop
@@ -203,12 +209,6 @@ curl --silent -o $HADOOP_PATH/stax2-api-4.2.1.jar \
 
 curl --silent -o $HADOOP_PATH/woodstox-core-6.5.1.jar \
   https://repo1.maven.org/maven2/com/fasterxml/woodstox/woodstox-core/6.5.1/woodstox-core-6.5.1.jar
-((CURRENT_STEP++)); progress_bar
-
-HMS_PATH=$JAR_PATH/hms
-
-curl --silent -o $HMS_PATH/postgresql-42.7.3.jar \
-  https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar
 ((CURRENT_STEP++)); progress_bar
 
 flag_time_taken

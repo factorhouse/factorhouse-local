@@ -26,6 +26,7 @@ x-common-flink-volumes: &flink_common_volumes
   - ./resources/deps/flink/iceberg:/tmp/iceberg
   - ./resources/deps/flink/parquet:/tmp/parquet
   - ./resources/deps/flink/connector:/tmp/connector
+  - ./resources/deps/postgres:/tmp/postgres
 
 services:
   flex:
@@ -210,7 +211,7 @@ services:
     volumes:
       - ./resources/hms/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./resources/hms/core-site.xml:/opt/hive/conf/core-site.xml
-      - ./resources/deps/hms/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
+      - ./resources/deps/postgres/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
       - ./resources/deps/hadoop/hadoop-common-3.3.6.jar:/opt/hive/lib/hadoop-common-3.3.6.jar
       - ./resources/deps/hadoop/hadoop-auth-3.3.6.jar:/opt/hive/lib/hadoop-auth-3.3.6.jar
       - ./resources/deps/hadoop/hadoop-aws-3.3.6.jar:/opt/hive/lib/hadoop-aws-3.3.6.jar
