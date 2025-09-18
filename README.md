@@ -396,7 +396,7 @@ This project walks through how to build a complete real-time analytics pipeline 
 
 <div align="center">
 <a href="https://github.com/factorhouse/examples/tree/main/projects/mobile-game-top-k-analytics" target="_blank" rel="noopener noreferrer">
-  <img src="https://raw.githubusercontent.com/factorhouse/examples/refs/heads/main/projects/mobile-game-top-k-analytics/images/mobile-game-top-k-analytics.gif" alt="Mobile Game Top K Analytics" width="600"/>
+  <img src="https://raw.githubusercontent.com/factorhouse/examples/refs/heads/main/projects/mobile-game-top-k-analytics/images/mobile-game-top-k-analytics-v2.gif" alt="Mobile Game Top K Analytics" width="600"/>
 </a>
 
 <br>
@@ -449,7 +449,7 @@ The lab demonstrates how to capture real-time data lineage from Kafka Connect us
 
 </details>
 
-<details>
+<details open>
 
 <summary><b style="font-size: 1.2em;">End-to-End Data Lineage from Kafka to Flink and Spark</b></summary>
 
