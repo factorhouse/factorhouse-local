@@ -514,8 +514,9 @@ Core services like Flink, Spark, and Kafka Connect are designed to be modular an
 #### Flink Connectors
 
 - **Kafka SQL Connector:** Enables Flink to read from and write to Kafka topics using SQL.
-- **Avro Confluent Registry:** Allows Flink to work with Avro schemas stored in Confluent Schema Registry.
-- **Flink Faker:** A connector for generating fake data streams within Flink, useful for development and testing.
+  - **Avro Confluent Registry:** Allows Flink to work with Avro schemas stored in Confluent Schema Registry.
+- **JDBC SQL Connector:** A connector for reading data from and writing data into any relational databases with a JDBC driver.
+  - **PostgreSQL JDBC Driver:** A driver to connect to a PostgreSQL database.
 
 #### Flink Hive Dependencies
 
