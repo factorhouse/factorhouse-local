@@ -1,6 +1,6 @@
 x-common-environment: &kafka_broker_common_env_vars
   KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT,LISTENER_MINIKUBE:PLAINTEXT
   KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
   KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
   KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
@@ -26,7 +26,8 @@ services:
       - kafka-3
     environment:
       SCHEMA_REGISTRY_HOST_NAME: "schema"
-      SCHEMA_REGISTRY_LISTENERS: http://schema:8081,http://${DOCKER_HOST_IP:-127.0.0.1}:8081
+
+      # SCHEMA_REGISTRY_LISTENERS: http://schema:8081,http://${DOCKER_HOST_IP:-127.0.0.1}:8081
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka-1:19092,kafka-2:19093,kafka-3:19094"
       SCHEMA_REGISTRY_AUTHENTICATION_METHOD: BASIC
       SCHEMA_REGISTRY_AUTHENTICATION_REALM: schema
@@ -114,11 +115,12 @@ services:
     container_name: kafka-1
     ports:
       - "9092:9092"
+      - "29092:29092"
     networks:
       - factorhouse
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka-1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka-1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,LISTENER_MINIKUBE://host.minikube.internal:29092
       <<: *kafka_broker_common_env_vars
     depends_on:
       - zookeeper
@@ -128,11 +130,12 @@ services:
     container_name: kafka-2
     ports:
       - "9093:9093"
+      - "29093:29093"
     networks:
       - factorhouse
     environment:
       KAFKA_BROKER_ID: 2
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka-2:19093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka-2:19093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093,LISTENER_MINIKUBE://host.minikube.internal:29093
       <<: *kafka_broker_common_env_vars
     depends_on:
       - zookeeper
@@ -142,11 +145,12 @@ services:
     container_name: kafka-3
     ports:
       - "9094:9094"
+      - "29094:29094"
     networks:
       - factorhouse
     environment:
       KAFKA_BROKER_ID: 3
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka-3:19094,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9094
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka-3:19094,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9094,LISTENER_MINIKUBE://host.minikube.internal:29094
       <<: *kafka_broker_common_env_vars
     depends_on:
       - zookeeper
