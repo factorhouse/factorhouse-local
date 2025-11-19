@@ -572,23 +572,20 @@ Core services like Flink, Spark, and Kafka Connect are designed to be modular an
 
 ### Update Kpow and Flex Licenses
 
-Both **Kpow** and **Flex** require valid licenses to run. You can get started in one of two ways:
+Both **Kpow** and **Flex** require valid licenses. Licenses can be obtained from the Factor House License Portal. Visit [https://account.factorhouse.io/auth/getting_started](https://account.factorhouse.io/auth/getting_started) to generate your license.
 
-- Request a free **Community License** for non-commercial use:
+You can begin with either of the following options:
 
-  - [Kpow Community License](https://factorhouse.io/kpow/community/)
-  - [Flex Community License](https://factorhouse.io/flex/community/)
-
-- Or request a **30-day Trial License** for commercial evaluation - **this license unlocks all enterprise features**:
-
-  - [Kpow Trial License](https://factorhouse.io/kpow/get-started/)
-  - [Flex Trial License](https://factorhouse.io/flex/get-started/)
+- Request a free **Community License** for non-commercial use. A single community license now covers both Kpow and Flex.
+- Request a **30-day Trial License** for commercial evaluation, providing full access to all enterprise features.
 
 For managing Kpow and Flex licenses effectively, it's strongly recommended to store the license files **externally** from your main configuration or version control system (like Git). This approach prevents accidental exposure of sensitive license details and makes updating or swapping licenses much simpler.
 
 The Docker Compose files facilitates this by allowing you to specify the path to your license file using **environment variables** on your host machine _before_ launching the services. Specifically, they are configured to look for these variables and use their values to locate the appropriate license file via the `env_file` directive. If an environment variable is not set, a default path (usually within the `resources` directory) is used as a fallback.
 
-Regardless of the edition, only a single licence file is expected for **Kpow** and **Flex**.
+Factor House Community licenses can be used across both Flex and Kpow, however individual trial licenses are required for evaluation. To enforce consistency, Kpow and Flex both require the license variable to be set on a product-by-product basis, regardless of which license you're using (this also applies to enterprise license configurations).
+
+Therefore, you should specify the path to your license file for both environment variables:
 
 - **`KPOW_LICENSE`**: Specifies the path to the Kpow license file.
 - **`FLEX_LICENSE`**: Specifies the path to the Flex license file.
