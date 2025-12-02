@@ -1,4 +1,4 @@
-![factorhouse](./images/factorhouse.jfif)
+<img width="1128" height="191" alt="LinkedIn Business (1)" src="https://github.com/user-attachments/assets/78bd1d4e-18be-4596-ae3a-ea20fb64ce9c" />
 
 # Factor House Local
 
