@@ -1,0 +1,540 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "panels": [],
+      "title": "Connector Summary Statistics",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "title": "Total Connectors",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_connector_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Running",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_connector_running_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Paused",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 8, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_connector_paused_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "orange" } }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Failed",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 12, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_connector_failed_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 13,
+      "title": "Unassigned",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 16, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_connector_unassigned_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 14,
+      "title": "Unreachable",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_connector_unreachable_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "id": 101,
+      "panels": [],
+      "title": "Task Summary Statistics",
+      "type": "row"
+    },
+    {
+      "id": 5,
+      "title": "Total Tasks",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 5, "x": 0, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_task_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Running",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 5, "x": 5, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_task_running_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Paused",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 5, "x": 10, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_task_paused_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "orange" } }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Failed",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 5, "x": 15, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_task_failed_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Unassigned",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_connect_task_unassigned_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 12 },
+      "id": 102,
+      "panels": [],
+      "title": "Detailed Status",
+      "type": "row"
+    },
+    {
+      "id": 10,
+      "title": "Connector Status",
+      "type": "table",
+      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "kpow_connect_connector_state{env=~\"$env\"}",
+          "instant": true,
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "options": {
+        "sortBy": [
+          { "displayName": "Environment", "desc": false },
+          { "displayName": "Connector Name", "desc": false }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "auto", "displayMode": "auto" },
+          "mappings": [
+            {
+              "type": "value",
+              "options": { "1": { "text": "RUNNING", "color": "green" } }
+            },
+            {
+              "type": "value",
+              "options": { "0": { "text": "FAILED", "color": "red" } }
+            },
+            {
+              "type": "value",
+              "options": { "2": { "text": "PAUSED", "color": "orange" } }
+            },
+            {
+              "type": "value",
+              "options": { "3": { "text": "UNASSIGNED", "color": "blue" } }
+            }
+          ]
+        }
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "domain": true,
+              "id": true,
+              "instance": true,
+              "job": true,
+              "Value": true
+            },
+            "indexByName": {
+              "state": 2,
+              "env": 0,
+              "target": 1
+            },
+            "renameByName": {
+              "state": "State",
+              "env": "Environment",
+              "target": "Connector Name"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Task Status",
+      "type": "table",
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "kpow_connect_connector_task_state{env=~\"$env\"}",
+          "instant": true,
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "options": {
+        "sortBy": [
+          { "displayName": "Environment", "desc": false },
+          { "displayName": "Task Name", "desc": false }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto", "displayMode": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "State" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "RUNNING": { "text": "RUNNING", "color": "green" }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "FAILED": { "text": "FAILED", "color": "red" }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "PAUSED": { "text": "PAUSED", "color": "orange" }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "UNASSIGNED": { "text": "UNASSIGNED", "color": "blue" }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "domain": true,
+              "id": true,
+              "instance": true,
+              "job": true,
+              "Value": true
+            },
+            "indexByName": {
+              "state": 2,
+              "env": 0,
+              "target": 1
+            },
+            "renameByName": {
+              "state": "State",
+              "env": "Environment",
+              "target": "Task Name"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "m",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["kafka", "kpow", "connect"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+        "definition": "label_values(kpow_connect_connector_total, env)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Environment",
+        "multi": true,
+        "name": "env",
+        "options": [],
+        "query": "label_values(kpow_connect_connector_total, env)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Kafka Connect",
+  "uid": "kafka-connect",
+  "version": 1,
+  "weekStart": ""
+}

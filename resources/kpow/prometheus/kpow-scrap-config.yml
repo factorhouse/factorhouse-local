@@ -8,3 +8,21 @@ scrape_configs:
         regex: "(.*)"
         target_label: __name__
         replacement: "kpow_$1"
+  - job_name: "kpow_offsets"
+    metrics_path: "/offsets/v1"
+    static_configs:
+      - targets: ["kpow:3000"]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "(.*)"
+        target_label: __name__
+        replacement: "kpow_$1"
+  - job_name: "kpow_group_offsets"
+    metrics_path: "/group-offsets/v1"
+    static_configs:
+      - targets: ["kpow:3000"]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "(.*)"
+        target_label: __name__
+        replacement: "kpow_$1"

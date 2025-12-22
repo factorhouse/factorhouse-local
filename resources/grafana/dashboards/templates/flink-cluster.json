@@ -1,0 +1,474 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "panels": [],
+      "title": "Flink Cluster Overview",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "title": "Total Task Managers",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "flex_flink_taskmanagers_total{env=~\"$env\"}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Total Slots",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "flex_flink_taskmanagers_slots_total{env=~\"$env\"}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Available Slots",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 8, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "flex_flink_taskmanagers_slots_available{env=~\"$env\"}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Job Manager Heap Usage",
+      "type": "gauge",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "(flex_flink_jobmanager_heap_used{env=~\"$env\"} / flex_flink_jobmanager_heap_max{env=~\"$env\"}) * 100",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Job Manager Non-Heap Usage",
+      "type": "gauge",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "(flex_flink_jobmanager_non_heap_used{env=~\"$env\"} / flex_flink_jobmanager_non_heap_max{env=~\"$env\"}) * 100",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "id": 101,
+      "panels": [],
+      "title": "Job Manager Details",
+      "type": "row"
+    },
+    {
+      "id": 6,
+      "title": "Job Manager Heap Memory Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "flex_flink_jobmanager_heap_used{env=~\"$env\"}",
+          "legendFormat": "Used",
+          "refId": "A"
+        },
+        {
+          "expr": "flex_flink_jobmanager_heap_committed{env=~\"$env\"}",
+          "legendFormat": "Committed",
+          "refId": "B"
+        },
+        {
+          "expr": "flex_flink_jobmanager_heap_max{env=~\"$env\"}",
+          "legendFormat": "Max",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 7,
+      "title": "Job Manager Non-Heap Memory Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "flex_flink_jobmanager_non_heap_used{env=~\"$env\"}",
+          "legendFormat": "Used",
+          "refId": "A"
+        },
+        {
+          "expr": "flex_flink_jobmanager_non_heap_committed{env=~\"$env\"}",
+          "legendFormat": "Committed",
+          "refId": "B"
+        },
+        {
+          "expr": "flex_flink_jobmanager_non_heap_max{env=~\"$env\"}",
+          "legendFormat": "Max",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 102,
+      "panels": [],
+      "title": "Task Manager Details",
+      "type": "row"
+    },
+    {
+      "id": 8,
+      "title": "Task Manager Heap Usage Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "flex_flink_taskmanager_heap_used{env=~\"$env\", target=~\"$task_manager\"}",
+          "legendFormat": "{{target}} - Used",
+          "refId": "A"
+        },
+        {
+          "expr": "flex_flink_taskmanager_heap_max{env=~\"$env\", target=~\"$task_manager\"}",
+          "legendFormat": "{{target}} - Max",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 9,
+      "title": "Task Manager Non-Heap Usage Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "flex_flink_taskmanager_non_heap_used{env=~\"$env\", target=~\"$task_manager\"}",
+          "legendFormat": "{{target}} - Used",
+          "refId": "A"
+        },
+        {
+          "expr": "flex_flink_taskmanager_non_heap_max{env=~\"$env\", target=~\"$task_manager\"}",
+          "legendFormat": "{{target}} - Max",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 10,
+      "title": "Task Managers Details",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "flex_flink_taskmanager_heap_used{env=~\"$env\", target=~\"$task_manager\"}",
+          "refId": "A",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "expr": "flex_flink_taskmanager_heap_max{env=~\"$env\", target=~\"$task_manager\"}",
+          "refId": "B",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "expr": "flex_flink_taskmanager_non_heap_used{env=~\"$env\", target=~\"$task_manager\"}",
+          "refId": "C",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "expr": "flex_flink_taskmanager_non_heap_max{env=~\"$env\", target=~\"$task_manager\"}",
+          "refId": "D",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "expr": "flex_flink_taskmanager_slots_available{env=~\"$env\", target=~\"$task_manager\"}",
+          "refId": "E",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "options": {
+        "sortBy": [
+          { "displayName": "Environment", "desc": false },
+          { "displayName": "Task Manager ID", "desc": false }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Heap used" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Heap max" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Non-heap used" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Non-heap max" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "target"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time 1": true,
+              "__name__ 1": true,
+              "domain 1": true,
+              "id 1": true,
+              "instance 1": true,
+              "job 1": true,
+              "Time 2": true,
+              "__name__ 2": true,
+              "domain 2": true,
+              "env 2": true,
+              "id 2": true,
+              "instance 2": true,
+              "job 2": true,
+              "Time 3": true,
+              "__name__ 3": true,
+              "domain 3": true,
+              "env 3": true,
+              "id 3": true,
+              "instance 3": true,
+              "job 3": true,
+              "Time 4": true,
+              "__name__ 4": true,
+              "domain 4": true,
+              "env 4": true,
+              "id 4": true,
+              "instance 4": true,
+              "job 4": true,
+              "Time 5": true,
+              "__name__ 5": true,
+              "domain 5": true,
+              "env 5": true,
+              "id 5": true,
+              "instance 5": true,
+              "job 5": true
+            },
+            "indexByName": {
+              "Value #A": 2,
+              "Value #B": 3,
+              "Value #C": 4,
+              "Value #D": 5,
+              "Value #E": 6,
+              "env 1": 0,
+              "target": 1
+            },
+            "renameByName": {
+              "Value #A": "Heap used",
+              "Value #B": "Heap max",
+              "Value #C": "Non-heap used",
+              "Value #D": "Non-heap max",
+              "Value #E": "Free slots",
+              "env 1": "Environment",
+              "target": "Task Manager ID"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["flex", "flink"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+        "definition": "label_values(flex_flink_jobmanager_heap_max, env)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Environment",
+        "multi": false,
+        "name": "env",
+        "options": [],
+        "query": "label_values(flex_flink_jobmanager_heap_max, env)",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+        "definition": "label_values(flex_flink_taskmanager_heap_used{env=~\"$env\"}, target)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Task Manager",
+        "multi": true,
+        "name": "task_manager",
+        "options": [],
+        "query": "label_values(flex_flink_taskmanager_heap_used{env=~\"$env\"}, target)",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Flink Cluster",
+  "uid": "flink-cluster",
+  "version": 1,
+  "weekStart": ""
+}
