@@ -1,0 +1,426 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "panels": [],
+      "title": "Key Environment Statistics",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "title": "Total Online Brokers",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_broker_count{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Total Data on Disk",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_topic_bytes_disk_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1,
+          "color": { "mode": "fixed", "fixedColor": "blue" }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Total Topics",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 8, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_topic_count{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }
+      }
+    },
+    {
+      "id": 11,
+      "title": "Total Consumer Groups",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 12, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_group_count{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Stable Consumer Groups",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 16, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "count(kpow_group_state{env=~\"$env\", state=\"Stable\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }
+      }
+    },
+    {
+      "id": 6,
+      "title": "URP",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_topic_urp_total{env=~\"$env\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "red", "value": 0.1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "id": 101,
+      "panels": [],
+      "title": "Performance Over Time",
+      "type": "row"
+    },
+    {
+      "id": 7,
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 7 },
+      "type": "timeseries",
+      "title": "Production",
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_topic_end_delta_total{env=~\"$env\"})",
+          "legendFormat": "Write Rate (msgs/sec)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(kpow_topic_bytes_disk_total{env=~\"$env\"})",
+          "legendFormat": "Total Data on Disk",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": { "type": "linear" },
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Total Data on Disk" },
+            "properties": [
+              { "id": "custom.axisPlacement", "value": "right" },
+              { "id": "unit", "value": "bytes" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 7 },
+      "type": "timeseries",
+      "title": "Consumption",
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "sum(kpow_group_offset_delta_total{env=~\"$env\"})",
+          "legendFormat": "Read Rate (msgs/sec)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(kpow_group_offset_lag_total{env=~\"$env\"})",
+          "legendFormat": "Total Lag",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": { "type": "linear" },
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Total Lag" },
+            "properties": [
+              { "id": "custom.axisPlacement", "value": "right" },
+              { "id": "unit", "value": "short" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+      "id": 102,
+      "panels": [],
+      "title": "Cluster Health & Stability",
+      "type": "row"
+    },
+    {
+      "id": 9,
+      "title": "Topic Activity",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 17 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "count(kpow_topic_production_inactive_mins{env=~\"$env\"} < 5 and kpow_topic_consumption_inactive_mins{env=~\"$env\"} < 5)",
+          "legendFormat": "Active (Read/Write)",
+          "refId": "A"
+        },
+        {
+          "expr": "count((kpow_topic_consumption_inactive_mins{env=~\"$env\"} < 5) unless (kpow_topic_production_inactive_mins{env=~\"$env\"} < 5))",
+          "legendFormat": "Read-Only",
+          "refId": "B"
+        },
+        {
+          "expr": "count((kpow_topic_production_inactive_mins{env=~\"$env\"} < 5) unless (kpow_topic_consumption_inactive_mins{env=~\"$env\"}))",
+          "legendFormat": "Write-Only",
+          "refId": "C"
+        },
+        {
+          "expr": "count((kpow_topic_production_inactive_mins{env=~\"$env\"} >= 5) unless (kpow_topic_consumption_inactive_mins{env=~\"$env\"} < 5))",
+          "legendFormat": "Inactive",
+          "refId": "D"
+        }
+      ],
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "stacking": { "mode": "normal", "group": "A" },
+            "fillOpacity": 80,
+            "lineStyle": { "fill": "solid" },
+            "lineWidth": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Consumer Group Health",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 17 },
+      "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+      "targets": [
+        {
+          "expr": "count(kpow_group_state{env=~\"$env\", state=\"Stable\"})",
+          "legendFormat": "Stable",
+          "refId": "A"
+        },
+        {
+          "expr": "count(kpow_group_state{env=~\"$env\", state=\"Rebalancing\"})",
+          "legendFormat": "Rebalancing",
+          "refId": "B"
+        },
+        {
+          "expr": "count(kpow_group_state{env=~\"$env\", state=\"Empty\"})",
+          "legendFormat": "Empty",
+          "refId": "C"
+        }
+      ],
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "stacking": { "mode": "normal", "group": "A" },
+            "fillOpacity": 70,
+            "lineStyle": { "fill": "solid" }
+          }
+        }
+      }
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["kafka", "kpow", "environment"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "fh_prom_ds" },
+        "definition": "label_values(kpow_broker_count, env)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Environment",
+        "multi": true,
+        "name": "env",
+        "options": [],
+        "query": "label_values(kpow_broker_count, env)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Kafka Environment",
+  "uid": "kafka-environment",
+  "version": 1,
+  "weekStart": ""
+}

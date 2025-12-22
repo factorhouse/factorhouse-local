@@ -1,8 +1,10 @@
 apiVersion: 1
 providers:
-  - name: "default"
+  - name: "default" # A name for this provider
+    orgId: 1
+    folder: "" # The Grafana folder to import dashboards into (empty for General)
     type: file
     disableDeletion: false
     editable: true
     options:
-      path: /etc/grafana/provisioning/dashboards
+      path: /etc/grafana/provisioning/dashboards/templates

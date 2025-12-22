@@ -5,3 +5,4 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
+    uid: fh_prom_ds
