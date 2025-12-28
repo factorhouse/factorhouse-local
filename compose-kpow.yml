@@ -1,6 +1,13 @@
 x-common-environment: &kafka_broker_common_env_vars
-  KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT,LISTENER_MINIKUBE:PLAINTEXT
+  # KRaft settings
+  KAFKA_PROCESS_ROLES: "broker,controller"
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-1:19091,2@kafka-2:19091,3@kafka-3:19091"
+  # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid"
+  # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
+  CLUSTER_ID: ${KAFKA_CLUSTER_ID:-42RglGpZQwy9D5VzTVpCWA}
+  # Common Kafka settings
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT,LISTENER_MINIKUBE:PLAINTEXT
   KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
   KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
   KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
@@ -20,7 +27,6 @@ services:
     networks:
       - factorhouse
     depends_on:
-      - zookeeper
       - kafka-1
       - kafka-2
       - kafka-3
@@ -35,11 +41,10 @@ services:
       - ./resources/kpow/schema:/etc/schema
 
   connect:
-    image: confluentinc/cp-kafka-connect:7.8.0
+    image: confluentinc/cp-kafka-connect:8.1.1
     container_name: connect
     restart: unless-stopped
     depends_on:
-      - zookeeper
       - kafka-1
       - kafka-2
       - kafka-3
@@ -97,19 +102,8 @@ services:
       - ./resources/kpow/jaas:/etc/kpow/jaas
       - ./resources/kpow/rbac:/etc/kpow/rbac
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.8.0
-    container_name: zookeeper
-    ports:
-      - "2181:2181"
-    networks:
-      - factorhouse
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-
   kafka-1:
-    image: confluentinc/cp-kafka:7.8.0
+    image: confluentinc/cp-kafka:8.1.1
     container_name: kafka-1
     ports:
       - "9092:9092"
@@ -118,13 +112,12 @@ services:
       - factorhouse
     environment:
       KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: CONTROLLER://kafka-1:19091,LISTENER_DOCKER_INTERNAL://kafka-1:19092,LISTENER_DOCKER_EXTERNAL://0.0.0.0:9092,LISTENER_MINIKUBE://0.0.0.0:29092
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka-1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,LISTENER_MINIKUBE://host.minikube.internal:29092
       <<: *kafka_broker_common_env_vars
-    depends_on:
-      - zookeeper
 
   kafka-2:
-    image: confluentinc/cp-kafka:7.8.0
+    image: confluentinc/cp-kafka:8.1.1
     container_name: kafka-2
     ports:
       - "9093:9093"
@@ -133,13 +126,12 @@ services:
       - factorhouse
     environment:
       KAFKA_BROKER_ID: 2
+      KAFKA_LISTENERS: CONTROLLER://kafka-2:19091,LISTENER_DOCKER_INTERNAL://kafka-2:19093,LISTENER_DOCKER_EXTERNAL://0.0.0.0:9093,LISTENER_MINIKUBE://0.0.0.0:29093
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka-2:19093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093,LISTENER_MINIKUBE://host.minikube.internal:29093
       <<: *kafka_broker_common_env_vars
-    depends_on:
-      - zookeeper
 
   kafka-3:
-    image: confluentinc/cp-kafka:7.8.0
+    image: confluentinc/cp-kafka:8.1.1
     container_name: kafka-3
     ports:
       - "9094:9094"
@@ -148,10 +140,9 @@ services:
       - factorhouse
     environment:
       KAFKA_BROKER_ID: 3
+      KAFKA_LISTENERS: CONTROLLER://kafka-3:19091,LISTENER_DOCKER_INTERNAL://kafka-3:19094,LISTENER_DOCKER_EXTERNAL://0.0.0.0:9094,LISTENER_MINIKUBE://0.0.0.0:29094
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka-3:19094,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9094,LISTENER_MINIKUBE://host.minikube.internal:29094
       <<: *kafka_broker_common_env_vars
-    depends_on:
-      - zookeeper
 
 networks:
   factorhouse:
