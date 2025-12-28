@@ -16,7 +16,7 @@ db:
 migrateOnStartup: true
 
 graphql:
-  enabled: true
+  enabled: ${GRAPHQL_ENABLED:-false}
 
 logging:
   level: INFO
@@ -24,7 +24,7 @@ logging:
     - type: console
 
 search:
-  enabled: ${SEARCH_ENABLED:-true}
+  enabled: ${SEARCH_ENABLED:-false}
   scheme: http
   host: ${SEARCH_HOST:-opensearch}
   port: ${SEARCH_PORT:-9200}
