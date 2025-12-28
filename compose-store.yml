@@ -1,0 +1,235 @@
+services:
+  ###### ZooKeeper ######
+  zookeeper:
+    image: zookeeper:3.9
+    container_name: zookeeper
+    restart: always
+    ports:
+      - "2181:2181"
+    networks:
+      - factorhouse
+    profiles:
+      - pinot
+    environment:
+      ZOO_4LW_COMMANDS_WHITELIST: ruok,stat
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc -w 2 127.0.0.1 2181 | grep imok"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+  ###### Pinot ######
+  pinot-controller:
+    image: apachepinot/pinot:1.2.0
+    command: "StartController -zkAddress zookeeper:2181"
+    container_name: pinot_controller
+    restart: unless-stopped
+    ports:
+      - "19000:9000"
+    networks:
+      - factorhouse
+    profiles:
+      - pinot
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms512M -Xmx1G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-controller.log"
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  pinot-broker:
+    image: apachepinot/pinot:1.2.0
+    command: "StartBroker -zkAddress zookeeper:2181"
+    container_name: pinot_broker
+    restart: unless-stopped
+    ports:
+      - "18099:8099"
+    networks:
+      - factorhouse
+    profiles:
+      - pinot
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms1G -Xmx2G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-broker.log"
+    depends_on:
+      pinot-controller:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8099/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  pinot-server:
+    image: apachepinot/pinot:1.2.0
+    command: "StartServer -zkAddress zookeeper:2181"
+    container_name: pinot_server
+    restart: unless-stopped
+    ports:
+      - "18098:8098"
+    networks:
+      - factorhouse
+    profiles:
+      - pinot
+    environment:
+      JAVA_OPTS: "-Dplugins.dir=/opt/pinot/plugins -Xms2G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xloggc:gc-pinot-server.log -Dlog4j.configurationFile=file:/opt/pinot/conf/log4j2.properties"
+    volumes:
+      - ./resources/pinot/log4j2.properties:/opt/pinot/conf/log4j2.properties
+    depends_on:
+      pinot-broker:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:8097/health/readiness || exit 1",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  ###### ClickHouse ######
+  ch-db:
+    image: mongo:5.0.14-focal
+    container_name: ch_db
+    ports:
+      - 27017:27017
+    networks:
+      - factorhouse
+    profiles:
+      - clickhouse
+  ch-otel-collector:
+    image: docker.hyperdx.io/hyperdx/hyperdx-otel-collector:2
+    container_name: ch_otel_collector
+    ports:
+      - "13133:13133" # health_check extension
+      - "24225:24225" # fluentd receiver
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP http receiver
+      - "8888:8888" # metrics extension
+    restart: always
+    networks:
+      - factorhouse
+    profiles:
+      - clickhouse
+    environment:
+      CLICKHOUSE_ENDPOINT: "tcp://ch-server:9000?dial_timeout=10s"
+      HYPERDX_OTEL_EXPORTER_CLICKHOUSE_DATABASE: default
+      HYPERDX_LOG_LEVEL: debug
+      OPAMP_SERVER_URL: "http://ch-app:4320"
+    depends_on:
+      - ch-server
+  ch-app:
+    image: docker.hyperdx.io/hyperdx/hyperdx:2
+    container_name: ch_app
+    ports:
+      - 8000:8000
+      - 8081:8080
+    networks:
+      - factorhouse
+    profiles:
+      - clickhouse
+    environment:
+      FRONTEND_URL: http://localhost:8081
+      HYPERDX_API_KEY: ${HYPERDX_API_KEY:-}
+      HYPERDX_API_PORT: 8000
+      HYPERDX_APP_PORT: 8080
+      HYPERDX_APP_URL: http://localhost
+      HYPERDX_LOG_LEVEL: debug
+      MINER_API_URL: "http://miner:5123"
+      MONGO_URI: "mongodb://ch-db:27017/hyperdx"
+      SERVER_URL: http://127.0.0.1:8000
+      OPAMP_PORT: 4320
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://ch-otel-collector:4318"
+      OTEL_SERVICE_NAME: "hdx-oss-app"
+      USAGE_STATS_ENABLED: ${USAGE_STATS_ENABLED:-true}
+      DEFAULT_CONNECTIONS: '[{"name":"Local
+        ClickHouse","host":"http://ch-server:8123","username":"default","password":""}]'
+      DEFAULT_SOURCES:
+        '[{"from":{"databaseName":"default","tableName":"otel_logs"},"kind":"log","timestampValueExpression":"TimestampTime","name":"Logs","displayedTimestampValueExpression":"Timestamp","implicitColumnExpression":"Body","serviceNameExpression":"ServiceName","bodyExpression":"Body","eventAttributesExpression":"LogAttributes","resourceAttributesExpression":"ResourceAttributes","defaultTableSelectExpression":"Timestamp,ServiceName,SeverityText,Body","severityTextExpression":"SeverityText","traceIdExpression":"TraceId","spanIdExpression":"SpanId","connection":"Local
+        ClickHouse","traceSourceId":"Traces","sessionSourceId":"Sessions","metricSourceId":"Metrics"},{"from":{"databaseName":"default","tableName":"otel_traces"},"kind":"trace","timestampValueExpression":"Timestamp","name":"Traces","displayedTimestampValueExpression":"Timestamp","implicitColumnExpression":"SpanName","serviceNameExpression":"ServiceName","bodyExpression":"SpanName","eventAttributesExpression":"SpanAttributes","resourceAttributesExpression":"ResourceAttributes","defaultTableSelectExpression":"Timestamp,ServiceName,StatusCode,round(Duration/1e6),SpanName","traceIdExpression":"TraceId","spanIdExpression":"SpanId","durationExpression":"Duration","durationPrecision":9,"parentSpanIdExpression":"ParentSpanId","spanNameExpression":"SpanName","spanKindExpression":"SpanKind","statusCodeExpression":"StatusCode","statusMessageExpression":"StatusMessage","connection":"Local
+        ClickHouse","logSourceId":"Logs","sessionSourceId":"Sessions","metricSourceId":"Metrics"},{"from":{"databaseName":"default","tableName":""},"kind":"metric","timestampValueExpression":"TimeUnix","name":"Metrics","resourceAttributesExpression":"ResourceAttributes","metricTables":{"gauge":"otel_metrics_gauge","histogram":"otel_metrics_histogram","sum":"otel_metrics_sum","_id":"682586a8b1f81924e628e808","id":"682586a8b1f81924e628e808"},"connection":"Local
+        ClickHouse","logSourceId":"Logs","traceSourceId":"Traces","sessionSourceId":"Sessions"},{"from":{"databaseName":"default","tableName":"hyperdx_sessions"},"kind":"session","timestampValueExpression":"TimestampTime","name":"Sessions","displayedTimestampValueExpression":"Timestamp","implicitColumnExpression":"Body","serviceNameExpression":"ServiceName","bodyExpression":"Body","eventAttributesExpression":"LogAttributes","resourceAttributesExpression":"ResourceAttributes","defaultTableSelectExpression":"Timestamp,ServiceName,SeverityText,Body","severityTextExpression":"SeverityText","traceIdExpression":"TraceId","spanIdExpression":"SpanId","connection":"Local
+        ClickHouse","logSourceId":"Logs","traceSourceId":"Traces","metricSourceId":"Metrics"}]'
+    depends_on:
+      - ch-server
+      - ch-db
+  ch-server:
+    image: clickhouse/clickhouse-server:25.6-alpine
+    container_name: ch_server
+    restart: on-failure
+    ports:
+      - 8123:8123 # http api
+      - 29000:9000 # native
+    networks:
+      - factorhouse
+    profiles:
+      - clickhouse
+    environment:
+      # default settings
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - ./resources/clickhouse/config.xml:/etc/clickhouse-server/config.xml
+      - ./resources/clickhouse/users.xml:/etc/clickhouse-server/users.xml
+  ###### StarRocks ######
+  starrocks-fe:
+    image: starrocks/fe-ubuntu:3.5-latest
+    container_name: starrocks-fe
+    user: root
+    command: |
+      bash /opt/starrocks/fe/bin/start_fe.sh --host_type FQDN
+    ports:
+      - 8030:8030
+      - 9020:9020
+      - 9030:9030
+    networks:
+      - factorhouse
+    profiles:
+      - starrocks
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+    healthcheck:
+      test: 'mysql -u root -h starrocks-fe -P 9030 -e "SHOW FRONTENDS\G" |grep "Alive: true"'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  starrocks-be:
+    image: starrocks/be-ubuntu:3.5-latest
+    container_name: starrocks-be
+    user: root
+    command:
+      - /bin/bash
+      - -c
+      - |
+        ulimit -n 65535;
+        echo "# Enable data cache"  >> /opt/starrocks/be/conf/be.conf
+        echo "block_cache_enable = true"  >> /opt/starrocks/be/conf/be.conf
+        echo "block_cache_mem_size = 536870912" >> /opt/starrocks/be/conf/be.conf
+        echo "block_cache_disk_size = 1073741824" >> /opt/starrocks/be/conf/be.conf
+        sleep 15s
+        mysql --connect-timeout 2 -h starrocks-fe -P 9030 -u root -e "ALTER SYSTEM ADD BACKEND \"starrocks-be:9050\";"
+        bash /opt/starrocks/be/bin/start_be.sh
+    ports:
+      - 8040:8040
+    networks:
+      - factorhouse
+    profiles:
+      - starrocks
+    environment:
+      - HOST_TYPE=FQDN
+    healthcheck:
+      test: 'mysql -u root -h starrocks-fe -P 9030 -e "SHOW BACKENDS\G" |grep "Alive: true"'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      starrocks-fe:
+        condition: service_healthy
+
+networks:
+  factorhouse:
+    external: ${USE_EXT:-true}
+    name: factorhouse
