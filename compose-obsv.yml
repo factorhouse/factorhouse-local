@@ -7,6 +7,8 @@ services:
       - "5433:5432"
     networks:
       - factorhouse
+    profiles:
+      - lineage
     environment:
       - POSTGRES_USER=marquez
       - POSTGRES_PASSWORD=marquez
@@ -29,6 +31,8 @@ services:
       - "5001:5001"
     networks:
       - factorhouse
+    profiles:
+      - lineage
     env_file:
       - resources/marquez/setup.env
     volumes:
@@ -42,6 +46,8 @@ services:
       - "3003:3000"
     networks:
       - factorhouse
+    profiles:
+      - lineage
     env_file:
       - resources/marquez/setup.env
     depends_on:
@@ -56,6 +62,8 @@ services:
       - "19090:9090"
     networks:
       - factorhouse
+    profiles:
+      - telemetry
     volumes:
       - ./resources/kpow/prometheus/kpow-scrap-config${KPOW_SUFFIX:-}.yml:/etc/prometheus/scrape_configs/kpow-scrap-config.yml
       - ./resources/kpow/prometheus/kpow-rules${KPOW_SUFFIX:-}.yml:/etc/prometheus/rules/kpow-rules.yml
@@ -73,6 +81,8 @@ services:
       - "19093:9093"
     networks:
       - factorhouse
+    profiles:
+      - telemetry
     volumes:
       - ./resources/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
 
@@ -85,6 +95,8 @@ services:
       - "3004:3000"
     networks:
       - factorhouse
+    profiles:
+      - telemetry
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
