@@ -259,6 +259,16 @@ services:
       - AWS_SECRET_ACCESS_KEY=password
       - AWS_REGION=us-east-1
 
+  redis:
+    image: redis:8
+    container_name: redis
+    command: redis-server --appendonly yes --loglevel warning --requirepass redis-pass
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - factorhouse
+
 networks:
   factorhouse:
     external: ${USE_EXT:-true}
