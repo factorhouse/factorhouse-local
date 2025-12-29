@@ -1,18 +1,30 @@
 ## JobManager setting (ignored by TaskManager)
 jobmanager.rpc.address: jobmanager
 # Mandatory memory configuration
+# 💡 Increase JobManager memory significantly (e.g., 4096m+)
+#  to handle high parallelism, job submissions, and cluster coordination.
 jobmanager.memory.process.size: 1024m
 
 # TaskManager setting (ignored by JobManager)
-taskmanager.numberOfTaskSlots: 10
-taskmanager.memory.process.size: 1024m
+taskmanager.numberOfTaskSlots: 6
+taskmanager.memory.process.size: 2048m
 
 # State backend
-state.backend: filesystem
+state.backend: rocksdb
+state.backend.rocksdb.localdir: /tmp/rocksdb
+state.backend.rocksdb.incremental: true
+state.backend.rocksdb.predefined-options: FLASH_SSD_OPTIMIZED
+state.backend.rocksdb.thread.num: 4
+state.backend.rocksdb.memory.managed: true
+# state.backend: hashmap
+
+# Durable directories for checkpoints and savepoints
+# 💡 Ensure object storage is backed-up with appropriate lifecycle policies. 
 state.checkpoints.dir: s3a://flink-checkpoints/checkpoints/
 state.savepoints.dir: s3a://flink-savepoints/savepoints/
 
 # Heartbeat
+# 💡 Defaults are often fine, but can be tuned for high-latency networks
 heartbeat.interval: 1000
 heartbeat.timeout: 5000
 
@@ -20,6 +32,7 @@ heartbeat.timeout: 5000
 rest.port: 8081
 rest.bind-address: 0.0.0.0
 rest.flamegraph.enabled: true
+rest.profiling.enabled: true
 web.backpressure.refresh-interval: 10000
 
 # MinIO
@@ -39,12 +52,17 @@ classloader.resolve-order: parent-first
 
 # Enable streaming Iceberg queries with OPTIONS
 table.dynamic-table-options.enabled: true
-# # Improve stability in streaming jobs
+
+# Checkpointing
+# 💡 While checkpointing should be configured by individual jobs. 
+# For a safety net, consider adding sensible global defaults.
+# This ensures no streaming job can be deployed without being fault-tolerant.
 # execution.checkpointing.mode: EXACTLY_ONCE
-# execution.checkpointing.interval: 30s
-# execution.checkpointing.timeout: 5m
-# execution.checkpointing.min-pause: 15s
+# execution.checkpointing.interval: 1m
+# execution.checkpointing.timeout: 10m
+# execution.checkpointing.min-pause: 30s
 # execution.checkpointing.tolerable-failed-checkpoints: 3
+# execution.checkpointing.unaligned: true # Consider for high-backpressure scenarios
 
 # # Faster task startup
 # execution.runtime-mode: streaming
