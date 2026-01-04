@@ -20,7 +20,7 @@ x-common-environment: &kafka_broker_common_env_vars
 
 services:
   schema:
-    image: confluentinc/cp-schema-registry:7.8.0
+    image: confluentinc/cp-schema-registry:8.1.1
     container_name: schema_registry
     ports:
       - "8081:8081"
