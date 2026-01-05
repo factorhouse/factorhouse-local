@@ -281,7 +281,7 @@ A next-generation, high-performance analytical data store designed for a wide ra
 
 <details>
 
-<summary><b>Data Lineage & Observability with OpenLineage (via Marquez) and Prometheus</b></summary>
+<summary><b>Data Lineage & Observability with OpenLineage and Prometheus</b></summary>
 
 <br>
 
@@ -689,7 +689,7 @@ services:
 
 To get the platform running, you first need to configure your local environment. This involves setting environment variables to select the edition you want to run (Community or Enterprise) and providing the file paths to your licenses. Once these prerequisites are set, you can launch the services using `docker compose`. You have two primary options: you can start all services (Kpow, Flex, and Pinot) together for a fully integrated experience, or you can run Kpow and Flex independently for more focused use cases. When you are finished, remember to run the corresponding `down` command to stop and remove the containers, and unset the environment variables to clean up your session.
 
-### **1. Prerequisite: Configure Your Environment**
+### Prerequisite: Configure Your Environment
 
 Before running any commands, configure your shell environment by uncommenting and setting the following variables in your terminal.
 
@@ -710,7 +710,7 @@ Before running any commands, configure your shell environment by uncommenting an
 # export FLEX_LICENSE="/path/to/your/flex-license.env"
 ```
 
-### **2. How to Run the Stacks**
+### Run the Stacks
 
 This platform is designed to be modular. You can run each stack individually or combine them to create a complete, integrated environment.
 
@@ -813,7 +813,7 @@ docker compose -p metadata --profile omt -f ./compose-metadata.yml up -d
 docker compose -p metadata --profile omt -f ./compose-metadata.yml down
 ```
 
-### **3. Clean Up Your Environment**
+### Clean Up Your Environment
 
 After stopping the services, run this command to unset the environment variables from your terminal session.
 
@@ -847,7 +847,7 @@ The following sections show key services and their associated port mappings.
 
 | Service Name | Port(s) (Host:Container)   | Description                                                |
 | :----------- | :------------------------- | :--------------------------------------------------------- |
-| `kpow`       | `3000:3000`<br>`4000:4000` | Kpow Web UI (`3000`) and API (`4000`).                     |
+| `kpow`       | `3000:3000`<br>`4000:4000` | Kpow Web UI (`3000`)<br>Kpow API (`4000`)                  |
 | `schema`     | `8081:8081`                | Confluent Schema Registry (manages Kafka message schemas). |
 | `connect`    | `8083:8083`                | Kafka Connect (framework for Kafka connectors).            |
 | `kafka-1`    | `9092:9092`                | Kafka Broker 1 (primary listener).                         |
@@ -891,9 +891,9 @@ These services are launched from `compose-store.yml` using profiles.
 
 #### StarRocks (`--profile starrocks`)
 
-| Service Name   | Port(s) (Host:Container)   | Description                                                   |
-| :------------- | :------------------------- | :------------------------------------------------------------ |
-| `starrocks-fe` | `8030:8030`<br>`9030:9030` | StarRocks Frontend UI (`8030`) and MySQL SQL client (`9030`). |
+| Service Name   | Port(s) (Host:Container)   | Description                                                  |
+| :------------- | :------------------------- | :----------------------------------------------------------- |
+| `starrocks-fe` | `8030:8030`<br>`9030:9030` | StarRocks Frontend UI (`8030`)<br>MySQL SQL client (`9030`). |
 
 ### Observability Stacks
 
