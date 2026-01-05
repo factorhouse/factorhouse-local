@@ -1,14 +1,16 @@
 #!/bin/bash
 set -e
 
+## TODO: Currently it exports a token from an admin user. Create a bot and token from it!
+
 # This script will wait for the OpenMetadata server to be ready,
 # then create a bot and generate a JWT token for the Airflow lineage backend.
 
 OM_ADMIN_USER=admin@factorhouse.io
 OM_ADMIN_PASSWORD=admin
 ENCODED_PASSWORD=$(echo -n "${OM_ADMIN_PASSWORD}" | base64)
-OM_SERVER_URL="http://om-server:8585/api"
-OM_HEALTH_URL="http://om-server:8586/healthcheck"
+OM_SERVER_URL="http://omt-server:8585/api"
+OM_HEALTH_URL="http://omt-server:8586/healthcheck"
 BOT_NAME="airflow_lineage_bot"
 BOT_USER_JSON="{ \"name\": \"${BOT_NAME}\", \"displayName\": \"Airflow Lineage Bot\" }"
 
@@ -42,3 +44,5 @@ echo "Successfully obtained admin token."
 export AIRFLOW__LINEAGE__JWT_TOKEN="${ADMIN_TOKEN}"
 
 echo "JWT Token has been set for the Airflow lineage backend using the ADMIN token."
+echo "You can check the value of AIRFLOW__LINEAGE__JWT_TOKEN by executing the following command:"
+echo "docker exec omt_ingestion cat /proc/1/environ | tr '\0' '\n' | grep AIRFLOW__LINEAGE__JWT_TOKEN"
