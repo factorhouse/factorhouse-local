@@ -14,11 +14,11 @@ We provide several pre-configured Docker Compose environments to showcase differ
 
 <br>
 
-This stack provides a complete **Apache Kafka development and monitoring environment**, built using Confluent Platform components and enhanced with [**Kpow**](https://factorhouse.io/kpow) for enterprise-grade observability and management. It includes a 3-node Kafka cluster, Zookeeper, Schema Registry, Kafka Connect, and Kpow itself.
+This stack provides a complete **Apache Kafka development and monitoring environment**, built using Confluent Platform components and enhanced with [**Kpow**](https://factorhouse.io/kpow) for enterprise-grade observability and management. It includes a 3-node, Zookeeper-less Kafka cluster running in KRaft mode, Schema Registry, Kafka Connect, and Kpow itself.
 
 ### 📌 Description
 
-This architecture is designed for developers and operations teams who need a **robust, local Kafka ecosystem** for building, testing, and managing Kafka-based applications. It features high availability (3 brokers), schema management for data governance, a data integration framework (Kafka Connect), and a powerful UI (Kpow) for monitoring cluster health, inspecting data, managing topics, and troubleshooting.
+This architecture is designed for developers and operations teams who need a **robust, local Kafka ecosystem** for building, testing, and managing Kafka-based applications. By leveraging Kafka's KRaft mode, it offers a simplified, more efficient, and modern setup without the dependency on ZooKeeper. It features high availability (3 brokers), schema management for data governance, a data integration framework (Kafka Connect), and a powerful UI (Kpow) for monitoring cluster health, inspecting data, managing topics, and troubleshooting.
 
 It's ideal for scenarios involving **event-driven architectures, microservices communication, data integration pipelines**, and situations requiring deep visibility into Kafka internals.
 
@@ -28,55 +28,38 @@ It's ideal for scenarios involving **event-driven architectures, microservices c
 
 #### 🚀 Kpow (Kafka Management & Monitoring Toolkit)
 
-- Container: **kpow** from (`factorhouse/kpow:latest` (**enterprise**)) or **kpow-ce** from (`factorhouse/kpow-ce:latest` (**community**))
+- **Container**: `kpow` from (`factorhouse/kpow:latest`)
 - An engineering toolkit providing a rich web UI for comprehensive Kafka monitoring, management, and data inspection. Kpow gathers Kafka resource information, stores it locally in internal topics, and delivers custom telemetry and insights. Features include:
-  - **Comprehensive Real-time Kafka Resource Monitoring:**
-    - Instant visibility ("X-Ray vision") of brokers, topics, consumer groups, partitions, offsets, and more.
-    - Gathers data every minute, with a "Live mode" for real-time updates.
-    - No JMX access required.
-  - **Advanced Consumer and Streams Monitoring (Compute Console):**
-    - Visualize message throughput and lag for consumers (and soon, Kafka Streams topologies).
-    - Multi-dimensional consumer lag insights from custom derived telemetry.
-    - Ability to reset consumption at group, host, member, topic, or assignment level.
-  - **Deep Data Inspection with kJQ:**
-    - Powerful JQ-like querying (kJQ) to search tens of thousands of messages per second.
-    - Supports JSON, Apache Avro®, Transit, EDN, and Protobuf messages (with custom serdes for Protobuf to JSON).
-  - **Schema Registry Integration:** Full support for controlling and monitoring Schema Registries.
-  - **Kafka Connect Cluster Management:** Full support for controlling and monitoring Kafka Connect clusters.
-  - **Enterprise-Grade Security & Governance:**
-    - **Authentication:** Supports DB, File, LDAP, SAML, or OpenID configurations.
-    - **Authorization:** Simple or Role-Based Access Controls (RBAC). The original summary also mentioned JAAS, often paired with RBAC and configured via volume mounts (_Enterprise edition (ee) only_).
-    - **Data Policies:** Includes capabilities for masking and redaction of sensitive data (e.g., PII, Credit Card).
-    - **Audit Logging:** All user actions are captured in the Kpow audit log.
-  - **Key Integrations & Deployment Features:**
-    - **Slack Integration:** Sends user actions to an operations channel.
-    - **Prometheus Endpoints:** For integration with preferred metrics and alerting systems.
-    - **HTTPS Support:** Easily configured with your own certificates or via a reverse-proxy.
-    - **Multi-Cluster Monitoring:** Manage multiple Kafka clusters from a single Kpow installation.
-    - **Air-Gapped Environments:** Well-suited due to all data being stored in local Kafka topics.
-- Exposes UI at `http://localhost:3000`
+  - **Comprehensive Real-time Kafka Resource Monitoring**: Instant visibility of brokers, topics, consumer groups, partitions, offsets, and more. It gathers data every minute, with a "Live mode" for real-time updates and requires no JMX access.
+  - **Advanced Consumer and Streams Monitoring**: Visualize message throughput and lag for consumers with multi-dimensional insights.
+  - **Deep Data Inspection with kJQ**: A powerful JQ-like query language to search messages at high speed, supporting JSON, Avro, Protobuf, and more.
+  - **Schema Registry & Kafka Connect Integration**: Full support for controlling and monitoring Schema Registries and Kafka Connect clusters.
+  - **Enterprise-Grade Security & Governance**: Supports Authentication (LDAP, SAML, OpenID), role-based access controls (RBAC), data masking policies, and a full audit log.
+  - **Key Integrations**: Includes Slack integration, Prometheus endpoints, and multi-cluster management capabilities.
+- **Exposes UI at** `http://localhost:3000`
 
-#### 🧠 Kafka Cluster (3 Brokers + Zookeeper)
+#### 🧠 KRaft-based Kafka Cluster (3 Brokers)
 
-- **Zookeeper (`confluentinc/cp-zookeeper:7.8.0`)**: Coordinates the Kafka brokers.
-- **Kafka Brokers (`confluentinc/cp-kafka:7.8.0` x3)**: Form the core message bus.
-  - Configured with distinct internal (`1909x`) and external (`909x`) listeners for docker networking.
-  - Provides basic fault tolerance with 3 nodes.
+- **Kafka Brokers (`confluentinc/cp-kafka:8.1.1` x3)**: Form the core message bus, now operating in **KRaft (Kafka Raft Metadata) mode**.
+  - **Zookeeper-less Architecture**: This setup removes the need for a separate Zookeeper cluster. The brokers themselves handle metadata management and controller election through an internal consensus mechanism.
+  - Configured with distinct internal (`1909x`) and external (`909x`, `2909x`) listeners for flexible Docker and Minikube networking.
+  - Provides high availability and fault tolerance with a 3-node quorum.
   - Accessible externally via ports `9092`, `9093`, `9094`.
 
-#### 📜 Schema Registry (`confluentinc/cp-schema-registry:7.8.0`)
+#### 📜 Schema Registry (`confluentinc/cp-schema-registry:8.1.1`)
 
 - Manages schemas (Avro, Protobuf, JSON Schema) for Kafka topics, ensuring data consistency and enabling schema evolution.
-- Accessible at `http://localhost:8081`.
-- Configured with Basic Authentication (`schema_jaas.conf`).
+- **Accessible at** `http://localhost:8081`.
+- Configured with Basic Authentication.
 - Stores its schemas within the Kafka cluster itself.
 
-#### 🔌 Kafka Connect (`confluentinc/cp-kafka-connect:7.8.0`)
+#### 🔌 Kafka Connect (`confluentinc/cp-kafka-connect:8.1.1`)
 
 - Framework for reliably streaming data between Apache Kafka and other systems.
-- Accessible via REST API at `http://localhost:8083`.
+- **Accessible via REST API at** `http://localhost:8083`.
 - Configured to use JSON converters by default.
-- **Custom Connector Support**: Volume mount `./resources/kpow/connector` allows adding custom or third-party connectors (e.g., JDBC, S3, Iceberg - hinted by `AWS_REGION`).
+- **Custom Connector Support**: Volume mounts allow adding third-party connectors (e.g., JDBC, S3, Iceberg).
+- **OpenLineage Integration**: Configured to send lineage metadata to a Marquez API, enabling data lineage tracking.
 - Manages its configuration, offsets, and status in dedicated Kafka topics.
 
 ---
@@ -85,28 +68,26 @@ It's ideal for scenarios involving **event-driven architectures, microservices c
 
 #### Local Kafka Development & Testing
 
-- Build and test Kafka producers, consumers, and Kafka Streams applications against a realistic, multi-broker cluster.
+- Build and test Kafka producers, consumers, and Kafka Streams applications against a realistic, multi-broker KRaft cluster.
 - Validate application behavior during broker failures (by stopping/starting broker containers).
 
 #### Data Integration Pipelines
 
-- Utilize Kafka Connect to ingest data into Kafka from databases, logs, or APIs using source connectors.
-- Stream data out of Kafka to data lakes (S3, Iceberg), warehouses, or other systems using sink connectors.
+- Utilize Kafka Connect to ingest data into Kafka from various sources or stream data out to data lakes, warehouses, and other systems.
 - Test and manage connector configurations via the Connect REST API or Kpow UI.
 
 #### Schema Management & Evolution
 
-- Define, register, and evolve schemas using Schema Registry to enforce data contracts between producers and consumers.
-- Test compatibility modes and prevent breaking changes in data pipelines.
+- Define, register, and evolve schemas using Schema Registry to enforce data contracts and prevent breaking changes in data pipelines.
 
 #### Real-Time Monitoring & Operations Simulation
 
-- Use Kpow to monitor cluster health, track topic/partition metrics (size, throughput), identify consumer lag, and inspect messages in real-time.
+- Use Kpow to monitor cluster health, track topic/partition metrics, identify consumer lag, and inspect messages in real-time.
 - Understand Kafka performance characteristics and troubleshoot issues within a controlled environment.
 
-#### Learning & Exploring Kafka
+#### Learning & Exploring Modern Kafka
 
-- Provides a self-contained environment to learn Kafka concepts, experiment with configurations, and explore the capabilities of the Confluent Platform and Kpow.
+- Provides a self-contained environment to learn modern Kafka concepts, experiment with a Zookeeper-less configuration, and explore the capabilities of the Confluent Platform and Kpow.
 
 </details>
 
@@ -122,11 +103,11 @@ This stack builds a **comprehensive analytics platform** that erases the line be
 
 This architecture is designed around a modern data lakehouse that serves both streaming and batch jobs from the same data. At its foundation, data is stored in Apache Iceberg tables on MinIO, an S3-compatible object store. This provides powerful features like ACID transactions, schema evolution, and time travel for your data.
 
-A central **Hive Metastore** serves as a unified metadata catalog for the entire data ecosystem, providing essential information about the structure and location of datasets. By using a robust **PostgreSQL** database as its backend, the metastore reliably tracks all table schemas and metadata. This central catalog allows both **Apache Flink** (for low-latency streaming) and **Apache Spark** (for batch ETL and interactive analytics) to discover, query, and write to the same tables seamlessly, eliminating data silos.
+A central **Hive Metastore** serves as a unified metadata catalog for the entire data ecosystem. By using a robust **PostgreSQL** database as its backend, the metastore reliably tracks all table schemas and metadata. This central catalog allows both **Apache Flink** (for low-latency streaming) and **Apache Spark** (for batch ETL and interactive analytics) to discover, query, and write to the same tables seamlessly, eliminating data silos. The platform also includes **Redis**, an in-memory data store, to facilitate high-speed data lookups and caching for real-time enrichment tasks.
 
 The role of PostgreSQL is twofold: in addition to providing a durable backend for the metastore, it is configured as a high-performance transactional database ready for **Change Data Capture (CDC)**. This design allows you to stream every `INSERT`, `UPDATE`, and `DELETE` from your operational data directly into the lakehouse, keeping it perfectly synchronized in near real-time.
 
-The platform is rounded out by enterprise-grade tooling: **Flex** simplifies Flink management and monitoring, a **Flink SQL Gateway** enables interactive queries on live data streams, and a single node **Spark cluster** supports complex data transformations. This integrated environment is ideal for building sophisticated solutions for fraud detection, operational intelligence, and unified business analytics.
+The platform is rounded out by enterprise-grade tooling: **Flex** simplifies Flink management, a **Flink SQL Gateway** enables interactive queries, and a single node **Spark cluster** supports complex data transformations. This integrated environment is ideal for building sophisticated solutions for fraud detection, operational intelligence, and unified business analytics.
 
 ---
 
@@ -134,67 +115,60 @@ The platform is rounded out by enterprise-grade tooling: **Flex** simplifies Fli
 
 #### 🚀 Flex (Enterprise Flink Runtime)
 
-- Container: **kpow** from (`factorhouse/flex:latest` (**enterprise**)) or **kpow-ce** from (`factorhouse/flex-ce:latest` (**community**))
+- **Container**: `flex` from (`factorhouse/flex:latest`)
 - Provides an enterprise-ready tooling solution to streamline and simplify Apache Flink management. It gathers Flink resource information, offering custom telemetry, insights, and a rich data-oriented UI. Key features include:
-  - **Comprehensive Flink Monitoring & Insights:**
-    - Gathers Flink resource information minute-by-minute.
-    - Offers fully integrated metrics and telemetry.
-    - Provides access to long-term metrics and aggregated consumption/production data, from cluster-level down to individual job-level details.
-  - **Simplified Management for All User Groups:**
-    - User-friendly interface and intuitive controls.
-    - Aims to align business needs with Flink capabilities.
-  - **Enterprise-Grade Security & Governance:**
-    - **Versatile Authentication:** Supports DB, File, LDAP, SAML, OpenID, Okta, and Keycloak.
-    - **Robust Authorization:** Offers Simple or fine-grained Role-Based Access Controls (RBAC).
-    - **Data Policies:** Includes capabilities for masking and redaction of sensitive data (e.g., PII, Credit Card).
-    - **Audit Logging:** Captures all user actions for comprehensive data governance.
-    - **Secure Deployments:** Supports HTTPS and is designed for air-gapped environments (all data remains local).
-  - **Powerful Flink Enhancements:**
-    - **Multi-tenancy:** Advanced capabilities to manage Flink resources effectively with control over visibility and usage.
-    - **Multi-Cluster Monitoring:** Manage and monitor multiple Flink clusters from a single installation.
-  - **Key Integrations:**
-    - **Prometheus:** Exposes endpoints for integration with preferred metrics and alerting systems.
-    - **Slack:** Allows user actions to be sent to an operations channel in real-time.
-- Exposes UI at `http://localhost:3001`
+  - **Comprehensive Flink Monitoring & Insights**: Offers fully integrated metrics, long-term history, and aggregated consumption/production data, from cluster-level down to individual job-level details.
+  - **Enterprise-Grade Security & Governance**: Supports versatile Authentication (LDAP, SAML, OpenID), robust Role-Based Access Controls (RBAC), data masking policies, and a full audit log.
+  - **Powerful Flink Enhancements**: Includes multi-tenancy and multi-cluster monitoring capabilities.
+  - **Key Integrations**: Exposes Prometheus endpoints and allows for Slack notifications.
+- **Exposes UI at** `http://localhost:3001`
 
 #### 🧠 Flink Cluster (Real-Time Engine)
 
 - **JobManager** (`jobmanager`) coordinates all tasks, handles scheduling, checkpoints, and failover. Flink UI is exposed at `http://localhost:8082`.
 - **TaskManagers** (`taskmanager-1`, `-2`, `-3`) run user code and perform actual stream processing.
-- The cluster is configured to use the central **Hive Metastore** for catalog services.
+- The cluster is configured to use the central **Hive Metastore** for catalog services and includes a rich set of connectors for Kafka, Iceberg, and more.
 
 #### 🛠 Flink SQL Gateway
 
-- Container: `sql-gateway`
+- **Container**: `sql-gateway`
 - A REST-accessible endpoint (`http://localhost:9090`) for **interactive Flink SQL queries** against the unified catalog.
 
 #### 🚀 Spark Compute Engine (Batch Engine)
 
-- Container: `spark-iceberg`
-- Provides an **Apache Spark** environment pre-configured with **Apache Iceberg** support and connected to the central **Hive Metastore**.
+- **Container**: `spark-iceberg`
+- Provides an **Apache Spark** environment pre-configured with **Apache Iceberg** and OpenLineage support, connected to the central **Hive Metastore**.
 - **Spark Web UI** for monitoring running jobs (`http://localhost:4040`).
 - **Spark History Server** for reviewing completed jobs (`http://localhost:18080`).
 
 #### 📚 Hive Metastore (Unified Catalog)
 
-- Container: `hive-metastore`
-- A central **metadata service** for the entire data lakehouse. It allows both Flink and Spark to interact with the same Iceberg tables consistently.
-- Uses the **PostgreSQL** database as its backend to durably store all metadata (schemas, partitions, table locations).
-- Accessible internally at `thrift://hive-metastore:9083`.
+- **Container**: `hive-metastore`
+- A central **metadata service** that allows both Flink and Spark to interact with the same Iceberg tables consistently.
+- Uses the **PostgreSQL** database as its backend to durably store all metadata.
+- **Accessible internally at** `thrift://hive-metastore:9083`.
 
 #### 🐘 PostgreSQL (Transactional Hub & Metastore Backend)
 
-- Container: `postgres`
-- This component is the transactional and metadata backbone of the entire platform, serving two distinct and critical functions:
-  1.  **Durable Metastore Backend:** It provides the persistent storage for the **Hive Metastore**. All schemas, table versions, and partition information for the entire Iceberg lakehouse are stored transactionally in PostgreSQL. This makes the lakehouse catalog robust, reliable, and recoverable (Database: `metastore`).
-  2.  **Transactional Workload & CDC Hub:** It functions as a full-fledged relational database for application workloads. It is **purpose-built for Change Data Capture (CDC)**, with `wal_level=logical` enabled by design. This configuration prepares it for seamless integration with tools like **Debezium**, allowing every `INSERT`, `UPDATE`, and `DELETE` to be captured and streamed into the Flink/Iceberg pipeline.
-- Accessible at `localhost:5432` (Database: `fh_dev`).
+- **Container**: `postgres`
+- Serves two critical functions:
+  1.  **Durable Metastore Backend**: Provides persistent storage for the **Hive Metastore**.
+  2.  **Transactional Workload & CDC Hub**: Functions as a relational database for application workloads, with `wal_level=logical` enabled for seamless Change Data Capture.
+- **Accessible at** `localhost:5432`.
 
 #### 💾 S3-Compatible Object Storage (MinIO)
 
-- **MinIO** provides **S3-compatible object storage**, acting as the data lake storage layer for Iceberg tables, Flink checkpoints, and other artifacts.
+- **MinIO** provides **S3-compatible object storage**, acting as the data lake storage layer for Iceberg tables and Flink checkpoints.
   - **MinIO API** at `http://localhost:9000` | **MinIO Console UI** at `http://localhost:9001` (`admin`/`password`).
-- **MinIO Client**: A utility container that initializes MinIO by creating necessary buckets: `warehouse` (for Iceberg data), `fh-dev-bucket`, `flink-checkpoints`, and `flink-savepoints`.
+- **MinIO Client** (`mc`) initializes MinIO by creating necessary buckets (`warehouse`, `flink-checkpoints`, etc.).
+
+#### ⚡ Redis (In-Memory Data Store)
+
+- **Container**: `redis`
+- A high-performance **in-memory key-value store** that adds a low-latency data access layer to the platform.
+- **Purpose**: Ideal for caching frequently accessed data, serving as a high-speed lookup table for stream enrichment in Flink, or acting as a serving layer for real-time application results.
+- **Configuration**: Configured for persistence (`appendonly yes`) and secured with a password.
+- **Accessible at** `localhost:6379`.
 
 ---
 
@@ -207,17 +181,16 @@ The platform is rounded out by enterprise-grade tooling: **Flex** simplifies Fli
 
 #### Real-Time Ingestion from Transactional Systems (CDC)
 
-- The architecture is **purpose-built to support CDC pipelines**. The `wal_level=logical` setting in PostgreSQL is intentionally enabled, allowing a tool like Debezium to capture every row-level change (INSERT, UPDATE, DELETE) and stream it into the data lakehouse in near real-time. This keeps the Iceberg tables continuously synchronized with the operational database.
+- The architecture is **purpose-built to support CDC pipelines**. The `wal_level=logical` setting in PostgreSQL allows tools like Debezium to capture every row-level change and stream it into the data lakehouse in near real-time.
 
 #### Batch ETL/ELT Pipelines
 
-- Use Spark to ingest data from various sources (including transactional data from PostgreSQL), perform large-scale transformations, and load it into Iceberg tables.
-- Read from Iceberg tables for downstream processing, reporting, or machine learning.
+- Use Spark to perform large-scale transformations on data within the lakehouse for reporting or machine learning.
 
 #### Real-Time ETL & Stream Enrichment
 
 - Ingest data from Kafka or CDC streams with Flink.
-- Join streaming data with lookup tables in real-time.
+- Join streaming data with lookup tables in **Redis** for millisecond-latency enrichment.
 - Write enriched, structured data directly into Iceberg tables, making it immediately available for Spark to query.
 
 #### Interactive & Self-Service Analytics
@@ -228,74 +201,81 @@ The platform is rounded out by enterprise-grade tooling: **Flex** simplifies Fli
 
 <details>
 
-<summary><b>Apache Pinot Real-Time OLAP Cluster</b></summary>
+<summary><b>Real-time Data Stores: Pinot, ClickHouse & StarRocks</b></summary>
 
 <br>
 
-This stack deploys a basic **Apache Pinot** cluster, a real-time distributed **OLAP (Online Analytical Processing)** datastore designed for **ultra-low-latency analytics** at scale. It includes the core Pinot components: Controller, Broker, and Server.
+This stack provides a flexible development environment featuring a choice of three powerful, **high-performance data stores**: Apache Pinot, ClickHouse, and StarRocks. Designed to be a showcase of modern data storage solutions, this configuration uses Docker Compose `profiles` to allow you to select and launch only the specific system you need for your real-time analytics workloads.
 
 ### 📌 Description
 
-This architecture provides the foundation for ingesting data from batch (e.g., HDFS, S3) or streaming sources (e.g., Kafka) and making it available for analytical queries with response times often in milliseconds. Pinot is optimized for user-facing analytics, real-time dashboards, anomaly detection, and other scenarios requiring fast insights on fresh data.
+This architecture is designed for developers and engineers to explore and build applications on top of leading data technologies. The name `compose-store.yml` reflects its purpose as a catalog of specialized storage systems for enabling low-latency analytical queries on large datasets.
 
-**Note:** This configuration requires an external Apache Zookeeper instance running at `zookeeper:2181` on the `factorhouse` network for cluster coordination, which is not defined within the Docker Compose file.
+- **Apache Pinot** is purpose-built for user-facing, real-time analytics requiring sub-second query latency.
+- **ClickHouse** is a general-purpose, high-performance OLAP database, deployed here with the HyperDX stack which provides a convenient web UI and ingestion endpoint to accelerate development.
+- **StarRocks** delivers a modern, high-concurrency OLAP experience for a wide range of analytical workloads.
+
+A standalone **ZooKeeper** service is included to provide the necessary coordination for the Apache Pinot cluster.
 
 ---
 
 ### 🔑 Key Components
 
-#### 👑 Pinot Controller (`pinot-controller`)
+This stack is organized into three independent profiles. To launch a specific system, use the `--profile` flag (e.g., `docker compose --profile pinot -f ./compose-store.yml up`).
 
-- Container: `apachepinot/pinot:1.2.0`
-- Role: Manages the overall cluster state, handles administration tasks (like adding tables, schema management), coordinates segment assignment, and monitors node health via Zookeeper.
-- **Admin UI/API**: Exposed externally at `http://localhost:19000` (maps to internal port 9000).
-- Healthcheck verifies its readiness.
+#### 🔵 Apache Pinot (`--profile pinot`)
 
-#### 📡 Pinot Broker (`pinot-broker`)
+A distributed, real-time OLAP data store designed for ultra-low-latency analytics at scale.
 
-- Container: `apachepinot/pinot:1.2.0`
-- Role: Acts as the query gateway. Receives SQL queries from clients, determines which servers hold the relevant data segments, scatters the query to those servers, gathers the results, and returns the final consolidated response.
-- **Query Endpoint**: Exposed externally at `http://localhost:18099` (maps to internal port 8099).
-- Depends on the Controller being healthy before starting.
-- Healthcheck verifies its readiness.
+- **ZooKeeper (`zookeeper`)**: Manages cluster state and coordination for Pinot.
+- **Pinot Controller (`pinot-controller`)**: The brain of the cluster, handling administration and schema management.
+  - **Admin UI/API**: `http://localhost:19000`
+- **Pinot Broker (`pinot-broker`)**: The query gateway for clients.
+  - **Query Endpoint**: `http://localhost:18099`
+- **Pinot Server (`pinot-server`)**: Hosts data segments and executes query fragments.
 
-#### 💾 Pinot Server (`pinot-server`)
+#### 🟡 ClickHouse for Real-Time Analytics (`--profile clickhouse`)
 
-- Container: `apachepinot/pinot:1.2.0`
-- Role: Hosts data segments (shards) and executes query fragments against the data it stores. Can ingest data directly from streaming sources (Realtime Server) or load pre-built segments from deep storage (Offline Server). This configuration runs a generic Server capable of both roles depending on table setup.
-- **Internal API/Metrics**: Exposed externally at `http://localhost:18098` (maps to internal port 8098/8097 for health). Direct interaction is less common than with the Broker or Controller.
-- Depends on the Broker being healthy before starting.
-- Healthcheck verifies its readiness.
+Deploys the powerful **ClickHouse OLAP engine** with a convenient UI and ingestion layer for building analytics applications.
 
-#### 🌐 Network & Dependencies
+- **ClickHouse Server (`ch-server`)**: The core of this profile. A high-performance, column-oriented DBMS designed for real-time analytical queries on massive datasets.
+  - **HTTP API**: `http://localhost:8123`
+- **HyperDX App (`ch-app`)**: Provides a **web UI and exploration tool** for interacting with ClickHouse. Use it to run SQL queries, visualize results, and manage your analytics environment.
+  - **UI**: `http://localhost:8081`
+- **HyperDX OTEL Collector (`ch-otel-collector`)**: An example of a high-performance data ingestion endpoint (OpenTelemetry Collector) capable of feeding real-time data into ClickHouse.
+- **MongoDB (`ch-db`)**: A necessary dependency that acts as a metadata store for the HyperDX UI.
 
-- All components reside on the `factorhouse` network.
-- Relies on an **external Zookeeper** instance at `zookeeper:2181` for coordination.
-- Startup order is enforced via `depends_on` and `healthcheck` conditions: Controller -> Broker -> Server.
+#### 🟢 StarRocks (`--profile starrocks`)
+
+A next-generation, high-performance analytical data store designed for a wide range of low-latency OLAP scenarios.
+
+- **StarRocks Frontend (FE) (`starrocks-fe`)**: Manages metadata, query planning, and client connections.
+  - **Admin UI**: `http://localhost:8030`
+  - **MySQL-compatible SQL Endpoint**: `localhost:9030`
+- **StarRocks Backend (BE) (`starrocks-be`)**: Responsible for storing data and executing the physical query plans with high performance.
 
 ---
 
 ### 🧰 Use Cases
 
-#### Real-Time Dashboards
+#### For Apache Pinot
 
-- Power interactive dashboards requiring millisecond query latency on potentially large, constantly updating datasets (e.g., operational monitoring, business intelligence).
+- **Real-Time Dashboards**: Power interactive dashboards requiring millisecond query latency on constantly updating datasets.
+- **User-Facing Analytics**: Embed analytics directly into applications where users can explore data with immediate feedback.
+- **Anomaly & Threat Detection**: Query streaming event data in near real-time to identify patterns and outliers quickly.
 
-#### User-Facing Analytics
+#### For ClickHouse
 
-- Embed analytics directly into applications where users can explore data slices and dices with immediate feedback (e.g., e-commerce site analytics, personalized recommendations).
+- **Real-Time Business Intelligence (BI)**: Power interactive dashboards and reports directly on raw, large-scale data without pre-aggregation.
+- **Interactive Big Data Analytics**: Run complex, ad-hoc analytical queries on terabytes of data (e.g., web clickstreams, IoT sensor data, financial transactions) and get results in seconds.
+- **Log and Event Data Analysis**: Build powerful search and aggregation systems on machine-generated data for operational intelligence or security analytics.
+- **Streaming Data Analytics**: Ingest data from real-time sources like Kafka and make it available for immediate querying.
 
-#### Anomaly & Threat Detection
+#### For StarRocks
 
-- Query streaming event data in near real-time to identify patterns, outliers, or anomalies quickly (e.g., fraud detection, system security monitoring).
-
-#### A/B Testing Analysis
-
-- Ingest experiment data and provide rapid aggregations and comparisons to evaluate A/B test performance.
-
-#### Log Analytics
-
-- Provide fast, interactive querying over large volumes of log or event data for troubleshooting and analysis.
+- **Modern Data Warehousing**: Serve as a high-performance core for a modern data warehouse, enabling fast BI reporting and low-latency dashboards.
+- **Ad-Hoc & Interactive Analytics**: Empower analysts to run complex, exploratory queries on large datasets without long wait times.
+- **Unified Analytics**: Query data from various sources, including data lakes, from a single, fast engine.
 
 </details>
 
@@ -305,57 +285,120 @@ This architecture provides the foundation for ingesting data from batch (e.g., H
 
 <br>
 
-This Docker Compose stack deploys a powerful environment for data lineage and systems observability. It features **Marquez**, the reference implementation of the **OpenLineage** open standard for data lineage, alongside a complete **observability suite** from Prometheus, Grafana, and Alertmanager.
+This Docker Compose stack provides two independent but complementary environments: a **data lineage service** powered by Marquez, and a complete **telemetry and observability suite** featuring Prometheus, Grafana, and Alertmanager. Through the use of Docker Compose `profiles`, you can launch either stack on its own, allowing you to use only the resources you need.
 
 ### 📌 Description
 
-This architecture is engineered for data professionals who need to understand their data's journey and monitor the health of their systems. It combines the power of OpenLineage for standardized metadata collection with Marquez for visualization and analysis. This is complemented by the industry-standard Prometheus/Grafana stack for comprehensive metrics and alerting.
+This architecture is designed for data professionals who need to understand their data's journey (`lineage`) and monitor the health of their systems (`telemetry`). It separates these concerns into two distinct profiles:
 
-The core of this stack is **OpenLineage**, a standardized API for collecting data lineage information. **Marquez** acts as the metadata server, collecting these OpenLineage events to build a living map of how datasets are produced and consumed. This is invaluable for impact and root cause analysis, data governance, and debugging complex data pipelines. The surrounding observability tools ensure the reliability and performance of the entire platform.
+- The **`lineage`** profile deploys **Marquez**, the reference implementation of the **OpenLineage** standard. It collects metadata to build a living map of how datasets are produced and consumed, which is invaluable for impact analysis, data governance, and debugging complex data pipelines.
+- The **`telemetry`** profile deploys the industry-standard Prometheus/Grafana stack for comprehensive metrics, visualization, and alerting, ensuring the reliability and performance of your entire platform.
 
 ---
 
 ### 🔑 Key Components
 
-#### 🚀 OpenLineage & Marquez (Data Lineage & Metadata Service)
+This stack is organized into two independent profiles. To launch a specific stack, use the `--profile` flag.
 
-**OpenLineage** is an open standard for the collection and analysis of data lineage. It provides a consistent format for data pipeline tools to emit metadata about jobs, datasets, and runs.
+#### 🧬 Data Lineage Stack (`--profile lineage`)
 
-- **`marquez-api` (`marquezproject/marquez:0.51.1`)**: The core Marquez backend service. It provides a RESTful API that is compliant with the OpenLineage standard, allowing it to receive metadata from a wide range of integrated tools like Flink, Spark, Airflow, and dbt.
-- **`marquez-web` (`marquezproject/marquez-web:0.51.1`)**: The web interface for Marquez, which visualizes the collected OpenLineage data. It allows users to browse the metadata catalog, explore interactive data lineage graphs, and trace the journey of their data. The UI is exposed on port `3003`.
-- **`marquez-db` (`postgres:14`)**: This PostgreSQL database serves as the backend for Marquez, storing all the metadata collected via OpenLineage events. It holds information on jobs, datasets, historical runs, and their relationships.
+Launch this stack with `docker compose --profile lineage -f ./compose.obsv.yml up -d`.
 
-#### 📊 Observability Stack (Prometheus, Grafana & Alertmanager)
+- **`marquez-api` (`marquezproject/marquez:0.51.1`)**: The core Marquez backend service. It provides a RESTful API compliant with the OpenLineage standard, allowing it to receive metadata from integrated tools like Flink, Spark, and Airflow.
+- **`marquez-web` (`marquezproject/marquez-web:0.51.1`)**: The web interface for Marquez, which visualizes the collected OpenLineage data. It allows users to explore interactive data lineage graphs and trace the journey of their data.
+  - **UI is exposed on port**: `3003`
+- **`marquez-db` (`postgres:14`)**: A PostgreSQL database that serves as the backend for Marquez, storing all metadata on jobs, datasets, historical runs, and their relationships.
 
-This is a widely-used, powerful open-source stack for monitoring and alerting.
+#### 📊 Telemetry & Observability Stack (`--profile telemetry`)
 
-- **`prometheus` (`prom/prometheus:v3.5.0`)**: A time-series database that collects and stores metrics by scraping configured endpoints. It is configured via a `prometheus.yml` file and includes specific rule files for monitoring other services (e.g., Kpow), indicating its role in a larger ecosystem. It is accessible on port `19090`.
-- **`alertmanager` (`prom/alertmanager:v0.28.1`)**: Manages alerts sent by Prometheus. It is responsible for deduplicating, grouping, and routing them to the correct notification channels like email or Slack. It exposes its UI on port `19093`.
-- **`grafana` (`grafana/grafana:12.1.1`)**: A leading visualization platform for creating dashboards from the metrics stored in Prometheus. This service is pre-configured with an admin user and uses a provisioning folder to automatically set up datasources and dashboards on startup. It is available on port `3004`.
+Launch this stack with `docker compose --profile telemetry -f ./compose.obsv.yml up -d`.
+
+- **`prometheus` (`prom/prometheus:v3.5.0`)**: A time-series database that collects and stores metrics by scraping configured endpoints. It's configured to scrape metrics from other services in the ecosystem (like Kpow or Flink).
+  - **UI is exposed on port**: `19090`
+- **`grafana` (`grafana/grafana:12.1.1`)**: A leading visualization platform for creating dashboards from the metrics stored in Prometheus. This service is pre-configured to automatically provision datasources and dashboards.
+  - **UI is exposed on port**: `3004` (admin/admin)
+- **`alertmanager` (`prom/alertmanager:v0.28.1`)**: Manages alerts sent by Prometheus. It handles deduplicating, grouping, and routing alerts to notification channels like email or Slack.
+  - **UI is exposed on port**: `19093`
+
+💡 **Note:** You can launch both stacks using:
+
+```bash
+docker compose --profile lineage --profile telemetry -f ./compose.obsv.yml up -d
+```
 
 ---
 
 ### 🧰 Use Cases
 
-#### Automated Data Lineage & Provenance Tracking
+#### For the Data Lineage Stack
 
-- Leverage OpenLineage integrations to automatically capture lineage metadata from your data pipelines. Use Marquez to visualize the origin, movement, and transformations of data across your entire ecosystem.
+- **Automated Data Lineage & Provenance Tracking**: Use OpenLineage integrations to automatically capture lineage metadata from your data pipelines. Visualize the origin, movement, and transformations of data across your ecosystem in the Marquez UI.
+- **Impact and Root Cause Analysis**: When a pipeline fails or data quality issues arise, use the lineage graph in Marquez to quickly identify the upstream root cause and assess the downstream impact.
+- **Data Governance and Compliance**: Maintain a detailed, historical record of dataset versions, schema changes, and job execution history, which is essential for auditing and understanding the data lifecycle.
 
-#### Impact and Root Cause Analysis
+#### For the Telemetry Stack (Prometheus & Grafana)
 
-- When a data pipeline fails or data quality issues arise, use the lineage graph in Marquez to quickly identify the root cause upstream and assess the potential impact on downstream datasets and dashboards.
+- **Centralized System Health Monitoring**: Utilize Prometheus and Grafana to monitor the performance and health of your data services. Create dashboards to track API latency, database connections, and resource utilization.
+- **Proactive Alerting on System Issues**: Configure alerts in Prometheus and Alertmanager to be notified of potential problems, such as high CPU usage, low disk space, or failed service health checks, before they impact your data consumers.
+- **Performance Analysis**: Dive deep into time-series metrics to understand the performance characteristics of your data platform, identify bottlenecks, and optimize resource allocation.
 
-#### Data Governance and Compliance
+</details>
 
-- Maintain a detailed, historical record of dataset versions, schema changes, and job execution history. This is essential for auditing, ensuring data governance policies are met, and understanding the lifecycle of your data.
+<details>
 
-#### Centralized System Health Monitoring
+<summary><b>Unified Data Discovery & Governance with OpenMetadata</b></summary>
 
-- Utilize the Prometheus and Grafana stack to monitor the performance and health of the Marquez services and other integrated components. Create dashboards to track API latency, database connections, and resource utilization.
+<br>
 
-#### Proactive Alerting on Data & System Issues
+This stack deploys **OpenMetadata**, an all-in-one open-source platform for data discovery, data lineage, data quality, observability, and governance. It provides a centralized metadata store, enabling teams to get a comprehensive view of their data assets. This entire environment is deployed under the `omt` profile.
 
-- Configure alerts in Prometheus and Alertmanager to be notified of potential problems. This could include failed job runs reported in the OpenLineage metadata, or system-level issues like high CPU usage, before they impact your data consumers.
+### 📌 Description
+
+This architecture is designed to create a single source of truth for all your data. OpenMetadata actively pulls metadata from a vast ecosystem of connectors (databases, data warehouses, BI tools, etc.) to build a rich, interconnected map of your data landscape.
+
+Unlike systems that focus purely on lineage, OpenMetadata is a comprehensive data workspace. It allows users to not only see how data is created and used (lineage) but also to search for data across the entire organization (discovery), understand its meaning through a business glossary (governance), and verify its trustworthiness through data quality tests. It's the central hub for collaboration and understanding around data.
+
+---
+
+### 🔑 Key Components
+
+This stack is organized under a single profile. To launch it, use the command `docker compose --profile omt up -d`.
+
+#### 🔵 OpenMetadata Platform (`--profile omt`)
+
+- **`omt-server` (`openmetadata/server`)**: The heart of the platform. This service hosts the OpenMetadata UI, the central metadata API, and all the core logic for managing data assets.
+  - **UI is exposed on port**: `8585`
+- **`omt-ingestion` (`openmetadata/ingestion`)**: An Airflow-based service dedicated to running metadata ingestion workflows. You configure and trigger these workflows from the OpenMetadata UI to connect to your data sources (like databases, dashboards, or messaging systems) and pull their metadata into the platform.
+  - **Airflow UI (for ingestion debugging) is on port**: `8080`
+- **`omt-db` (`postgresql`)**: The primary metadata store. This PostgreSQL database persists all the metadata for your data assets, including schemas, descriptions, tags, ownership, lineage information, and data quality test results.
+- **`omt-es` (`elasticsearch`)**: The search engine that powers OpenMetadata's discovery features. It indexes all metadata to provide a fast, powerful search experience, allowing users to quickly find relevant data assets.
+- **`omt-migrate` (`openmetadata/server`)**: An initialization container that runs once upon the first startup. Its job is to prepare and migrate the PostgreSQL database schema to the version required by the `omt-server`, ensuring the application starts correctly.
+
+---
+
+### 🧰 Use Cases
+
+#### Centralized Data Discovery
+
+- Empower data consumers (analysts, scientists, etc.) to find relevant and trusted data assets through a powerful, user-friendly search interface, regardless of where the data is physically located.
+
+#### End-to-End Data Lineage
+
+- Automatically ingest and visualize lineage from a wide range of sources (e.g., Flink, Spark, dbt, BI tools). This allows you to understand data dependencies, perform impact analysis for changes, and debug data issues from source to destination.
+
+#### Data Governance and Collaboration
+
+- Establish a **Business Glossary** with standardized definitions for key business terms.
+- Assign clear **ownership** to data assets to promote accountability.
+- Use **Tags and Classifications** to categorize data, identify sensitive information (PII), and enforce access policies.
+
+#### Data Quality Monitoring
+
+- Define and schedule data quality tests directly within the OpenMetadata UI. Monitor the health and reliability of your most critical datasets over time and build trust in your data.
+
+#### Enhanced Data Documentation
+
+- Create a collaborative environment where users can enrich metadata with descriptions, comments, and documentation, turning tribal knowledge into a shared, durable asset for the entire organization.
 
 </details>
 
@@ -667,60 +710,107 @@ Before running any commands, configure your shell environment by uncommenting an
 # export FLEX_LICENSE="/path/to/your/flex-license.env"
 ```
 
-### **2. Choose Your Launch Method**
+### **2. How to Run the Stacks**
 
-#### Option A: Run the Complete Platform
+This platform is designed to be modular. You can run each stack individually or combine them to create a complete, integrated environment.
 
-This is the standard method and launches all services together on a shared network.
+#### **Key Concepts**
 
-> 💡Although it demonstrates deploying all environments, you may choose to exclude one or more. Note, however, that Apache Pinot depends on the ZooKeeper service included in the Kpow stack.
+Before you start, understand these three concepts:
 
-**To Start All Services:**
+1.  **Project Isolation (`-p <name>`)**: We use the `-p` flag (e.g., `-p kpow`) to give each stack a unique project name. This prevents Docker from getting confused if multiple files define a service with the same name (like a database).
+2.  **Stack Profiles (`--profile`)**: Files like `compose-store.yml` and `compose-obsv.yml` contain multiple, independent services. The `--profile` flag lets you choose which one to activate (e.g., `--profile pinot`).
+3.  **Shared Network (`USE_EXT`)**: By default, the `compose-kpow.yml` stack creates a shared Docker network called `factorhouse`. Other stacks are designed to connect to this network so services can communicate.
+    - If you run a stack **without** the `kpow` stack, you must tell it to create its own network. This is done by setting `USE_EXT=false`.
 
-```bash
-docker compose -p kpow -f ./compose-kpow.yml up -d \
-  && docker compose -p flex -f ./compose-flex.yml up -d \
-  && docker compose -p pinot -f compose-pinot.yml up -d \
-  && docker compose -p obsv -f ./compose-obsv.yml up -d
-```
+---
 
-**To Stop All Services:**
+#### **Usage Examples**
 
-```bash
-docker compose -p obsv -f ./compose-obsv.yml down \
-  && docker compose -p pinot -f compose-pinot.yml down \
-  && docker compose -p flex -f ./compose-flex.yml down \
-  && docker compose -p kpow -f ./compose-kpow.yml down
-```
+While you can launch all services together, the most common and resource-friendly approach is to launch only the stacks you need.
 
-#### Option B: Run Services Individually
+**1. Kafka & Kpow Stack**
 
-This method is useful if you only need a specific component.
-
-**To Start Kpow Only:**
+This is the foundational stack. It creates the shared `factorhouse` network that other stacks can connect to.
 
 ```bash
+# Start
 docker compose -p kpow -f ./compose-kpow.yml up -d
-```
 
-**To Start Flex Only:**
-
-This command creates a dedicated Docker network for the Flex stack instead of using an external one.
-
-```bash
-USE_EXT=false docker compose -p flex -f ./compose-flex.yml up -d
-```
-
-> 💡 Note again that Apache Pinot cannot be started on its own because it depends on the ZooKeeper service included in the Kpow stack.
-
-**To Stop Individual Services:**
-
-```bash
-# Stop Kpow
+# Stop
 docker compose -p kpow -f ./compose-kpow.yml down
+```
 
-# Stop Flex
-USE_EXT=false docker compose -p flex -f ./compose-flex.yml down
+**2. Flink & Flex Stack**
+
+- To run **with** the Kafka stack (recommended):
+  ```bash
+  docker compose -p flex -f ./compose-flex.yml up -d
+  ```
+- To run **standalone** (creates its own network):
+  ```bash
+  USE_EXT=false docker compose -p flex -f ./compose-flex.yml up -d
+  ```
+- To stop:
+  ```bash
+  # Note: Use USE_EXT=false here as well if you started it standalone
+  docker compose -p flex -f ./compose-flex.yml down
+  ```
+
+**3. Real-Time Data Stores (Pinot, ClickHouse, StarRocks)**
+
+These are selected from `compose-store.yml` via profiles.
+
+> 💡 You can specify multiple profiles to launch more than one data store at once, e.g., `--profile pinot --profile clickhouse`.
+
+```bash
+# Start Apache Pinot (connected to the factorhouse network)
+docker compose -p store --profile pinot -f ./compose-store.yml up -d
+
+# Stop Apache Pinot
+docker compose -p store --profile pinot -f ./compose-store.yml down
+
+# Start ClickHouse (connected to the factorhouse network)
+docker compose -p store --profile clickhouse -f ./compose-store.yml up -d
+
+# Stop ClickHouse
+docker compose -p store --profile clickhouse -f ./compose-store.yml down
+
+# Start StarRocks (connected to the factorhouse network)
+docker compose -p store --profile starrocks -f ./compose-store.yml up -d
+
+# Stop StarRocks
+docker compose -p store --profile starrocks -f ./compose-store.yml down
+```
+
+**4. Observability Stacks (Lineage & Telemetry)**
+
+These are selected from `compose-obsv.yml` using profiles.
+
+```bash
+# Start Marquez for data lineage (connected to the factorhouse network)
+docker compose -p obsv --profile lineage -f ./compose-obsv.yml up -d
+
+# Stop Marquez
+docker compose -p obsv --profile lineage -f ./compose-obsv.yml down
+
+# Start all observability services (Lineage + Telemetry)
+docker compose -p obsv --profile lineage --profile telemetry -f ./compose-obsv.yml up -d
+
+# Stop all observability services
+docker compose -p obsv --profile lineage --profile telemetry -f ./compose-obsv.yml down
+```
+
+**5. Metadata Stack**
+
+This is selected from `compose-metadata.yml`.
+
+```bash
+# Start OpenMetadata (connected to the factorhouse network)
+docker compose -p metadata --profile omt -f ./compose-metadata.yml up -d
+
+# Stop OpenMetadata
+docker compose -p metadata --profile omt -f ./compose-metadata.yml down
 ```
 
 ### **3. Clean Up Your Environment**
@@ -753,52 +843,88 @@ After successful authentication, users are redirected to the **Overview** page.
 
 The following sections show key services and their associated port mappings.
 
-### Kafka with Kpow
+### Kafka with Kpow (KRaft Mode)
 
-| Service Name | Port(s) (Host:Container) | Description                                               |
-| :----------- | :----------------------- | :-------------------------------------------------------- |
-| `kpow`       | `3000:3000`              | Kpow (Web UI for Kafka monitoring and management)         |
-| `schema`     | `8081:8081`              | Confluent Schema Registry (manages Kafka message schemas) |
-| `connect`    | `8083:8083`              | Kafka Connect (framework for Kafka connectors)            |
-| `zookeeper`  | `2181:2181`              | ZooKeeper (coordination service for Kafka)                |
-| `kafka-1`    | `9092:9092`              | Kafka Broker 1 (message broker instance)                  |
-| `kafka-2`    | `9093:9093`              | Kafka Broker 2 (message broker instance)                  |
-| `kafka-3`    | `9094:9094`              | Kafka Broker 3 (message broker instance)                  |
+| Service Name | Port(s) (Host:Container)   | Description                                                |
+| :----------- | :------------------------- | :--------------------------------------------------------- |
+| `kpow`       | `3000:3000`<br>`4000:4000` | Kpow Web UI (`3000`) and API (`4000`).                     |
+| `schema`     | `8081:8081`                | Confluent Schema Registry (manages Kafka message schemas). |
+| `connect`    | `8083:8083`                | Kafka Connect (framework for Kafka connectors).            |
+| `kafka-1`    | `9092:9092`                | Kafka Broker 1 (primary listener).                         |
+| `kafka-2`    | `9093:9093`                | Kafka Broker 2 (primary listener).                         |
+| `kafka-3`    | `9094:9094`                | Kafka Broker 3 (primary listener).                         |
 
 ### Unified Analytics with Flex
 
-| Service Name     | Port(s) (Host:Container)     | Description                                                                                     |
-| :--------------- | :--------------------------- | :---------------------------------------------------------------------------------------------- |
-| `flex`           | `3001:3000`                  | Flex UI for enterprise Flink management and monitoring.                                         |
-| `jobmanager`     | `8082:8081`                  | Apache Flink JobManager UI & REST API for cluster coordination.                                 |
-| `sql-gateway`    | `9090:9090`                  | Apache Flink SQL Gateway for submitting interactive SQL queries.                                |
-| `spark`          | `4040:4040`<br>`18080:18080` | Spark Web UI for monitoring running jobs.<br>Spark History Server for reviewing completed jobs. |
-| `minio`          | `9001:9001`<br>`9000:9000`   | MinIO Console UI (at port `9001`).<br>MinIO S3-compatible API (at port `9000`).                 |
-| `postgres`       | `5432:5432`                  | PostgreSQL database, used as the Hive Metastore backend.                                        |
-| `hive-metastore` | `9083:9083`                  | Apache Hive Metastore service, providing a central catalog for Flink and Spark.                 |
+| Service Name     | Port(s) (Host:Container)     | Description                                                      |
+| :--------------- | :--------------------------- | :--------------------------------------------------------------- |
+| `flex`           | `3001:3000`                  | Flex UI for enterprise Flink management and monitoring.          |
+| `jobmanager`     | `8082:8081`                  | Apache Flink JobManager UI & REST API.                           |
+| `sql-gateway`    | `9090:9090`                  | Apache Flink SQL Gateway for submitting interactive SQL queries. |
+| `spark`          | `4040:4040`<br>`18080:18080` | Spark Web UI (`4040`).<br>Spark History Server (`18080`).        |
+| `minio`          | `9001:9001`<br>`9000:9000`   | MinIO Console UI (`9001`).<br>MinIO S3-compatible API (`9000`).  |
+| `postgres`       | `5432:5432`                  | PostgreSQL database, used as the Hive Metastore backend.         |
+| `hive-metastore` | `9083:9083`                  | Apache Hive Metastore service.                                   |
+| `redis`          | `6379:6379`                  | Redis in-memory data store.                                      |
 
-_(**Note:** The `taskmanager-*` and `mc` services run in the background and do not expose ports to the host computer.)_
+_\_(**Note:** Services like `taskmanager-_`and`mc` run in the background and do not expose ports to the host.)\_\*
 
-### Apache Pinot OLAP
+### Real-time Data Stores
 
-| Service Name       | Port(s) (Host:Container) | Description                                                 |
-| :----------------- | :----------------------- | :---------------------------------------------------------- |
-| `pinot-controller` | `19000:9000`             | Apache Pinot Controller (manages cluster state, UI/API)     |
-| `pinot-broker`     | `18099:8099`             | Apache Pinot Broker (handles query routing and results)     |
-| `pinot-server`     | `18098:8098`             | Apache Pinot Server (hosts data segments, executes queries) |
+These services are launched from `compose-store.yml` using profiles.
 
-Of course, here is a summary table for the OpenLineage and observability stack:
+#### Pinot (`--profile pinot`)
 
-### OpenLineage with Marquez & Prometheus
+| Service Name       | Port(s) (Host:Container) | Description                                              |
+| :----------------- | :----------------------- | :------------------------------------------------------- |
+| `zookeeper`        | `2181:2181`              | ZooKeeper (coordination service, required for Pinot).    |
+| `pinot-controller` | `19000:9000`             | Apache Pinot Controller (manages cluster state, UI/API). |
+| `pinot-broker`     | `18099:8099`             | Apache Pinot Broker (handles query routing).             |
+| `pinot-server`     | `18098:8098`             | Apache Pinot Server (hosts data and executes queries).   |
 
-| Service Name   | Port(s) (Host:Container) | Description                                               |
-| :------------- | :----------------------- | :-------------------------------------------------------- |
-| `marquez-web`  | `3003:3000`              | Marquez Web UI (visualizes OpenLineage data)              |
-| `marquez-api`  | `5000:5000`, `5001:5001` | Marquez backend and OpenLineage API endpoint              |
-| `marquez-db`   | `5433:5432`              | PostgreSQL database for Marquez metadata                  |
-| `prometheus`   | `19090:9090`             | Prometheus (metrics collection and database)              |
-| `alertmanager` | `19093:9093`             | Alertmanager (handles alerts from Prometheus)             |
-| `grafana`      | `3004:3000`              | Grafana (platform for metrics visualization & dashboards) |
+#### ClickHouse (`--profile clickhouse`)
+
+| Service Name | Port(s) (Host:Container)    | Description                                                          |
+| :----------- | :-------------------------- | :------------------------------------------------------------------- |
+| `ch-app`     | `8000:8000`<br>`8084:8080`  | HyperDX API (`8000`).<br>HyperDX Web UI (`8084`).                    |
+| `ch-server`  | `8123:8123`<br>`29000:9000` | ClickHouse Server HTTP API (`8123`).<br>Native TCP client (`29000`). |
+
+#### StarRocks (`--profile starrocks`)
+
+| Service Name   | Port(s) (Host:Container)   | Description                                                   |
+| :------------- | :------------------------- | :------------------------------------------------------------ |
+| `starrocks-fe` | `8030:8030`<br>`9030:9030` | StarRocks Frontend UI (`8030`) and MySQL SQL client (`9030`). |
+
+### Observability Stacks
+
+These services are launched from `compose-obsv.yml` using profiles.
+
+#### Lineage (`--profile lineage`)
+
+| Service Name  | Port(s) (Host:Container) | Description                                   |
+| :------------ | :----------------------- | :-------------------------------------------- |
+| `marquez-web` | `3003:3000`              | Marquez Web UI (visualizes OpenLineage data). |
+| `marquez-api` | `5000:5000`              | Marquez backend and OpenLineage API endpoint. |
+| `marquez-db`  | `5433:5432`              | PostgreSQL database for Marquez metadata.     |
+
+#### Telemetry (`--profile telemetry`)
+
+| Service Name   | Port(s) (Host:Container) | Description                                                |
+| :------------- | :----------------------- | :--------------------------------------------------------- |
+| `prometheus`   | `19090:9090`             | Prometheus (metrics collection and database).              |
+| `alertmanager` | `19093:9093`             | Alertmanager (handles alerts from Prometheus).             |
+| `grafana`      | `3004:3000`              | Grafana (platform for metrics visualization & dashboards). |
+
+### Data Discovery & Governance (OpenMetadata)
+
+These services are launched from `compose-metadata.yml` using the `--profile omt` flag.
+
+| Service Name    | Port(s) (Host:Container) | Description                                               |
+| :-------------- | :----------------------- | :-------------------------------------------------------- |
+| `omt-server`    | `8585:8585`              | OpenMetadata Web UI and central API.                      |
+| `omt-ingestion` | `8080:8080`              | Airflow UI for managing metadata ingestion workflows.     |
+| `omt-es`        | `9200:9200`              | Elasticsearch (powers the search and discovery features). |
+| `omt-db`        | `5434:5432`              | PostgreSQL database for the OpenMetadata backend.         |
 
 ## 📌 Further Configuration
 

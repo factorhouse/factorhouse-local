@@ -124,13 +124,13 @@ services:
     container_name: ch_app
     ports:
       - 8000:8000
-      - 8081:8080
+      - 8084:8080
     networks:
       - factorhouse
     profiles:
       - clickhouse
     environment:
-      FRONTEND_URL: http://localhost:8081
+      FRONTEND_URL: http://localhost:8084
       HYPERDX_API_KEY: ${HYPERDX_API_KEY:-}
       HYPERDX_API_PORT: 8000
       HYPERDX_APP_PORT: 8080
