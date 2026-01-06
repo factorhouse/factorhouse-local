@@ -362,7 +362,7 @@ Unlike systems that focus purely on lineage, OpenMetadata is a comprehensive dat
 
 ### 🔑 Key Components
 
-This stack is organized under a single profile. To launch it, use the command `docker compose --profile omt up -d`.
+This stack is organized under a single profile. To launch it, use the command `docker compose --profile omt -f ./compose-metadata.yml up -d`.
 
 #### 🔵 OpenMetadata Platform (`--profile omt`)
 
