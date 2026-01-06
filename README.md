@@ -904,7 +904,7 @@ These services are launched from `compose-obsv.yml` using profiles.
 | Service Name  | Port(s) (Host:Container) | Description                                   |
 | :------------ | :----------------------- | :-------------------------------------------- |
 | `marquez-web` | `3003:3000`              | Marquez Web UI (visualizes OpenLineage data). |
-| `marquez-api` | `5000:5000`              | Marquez backend and OpenLineage API endpoint. |
+| `marquez-api` | `5002:5000`              | Marquez backend and OpenLineage API endpoint. |
 | `marquez-db`  | `5433:5432`              | PostgreSQL database for Marquez metadata.     |
 
 #### Telemetry (`--profile telemetry`)
