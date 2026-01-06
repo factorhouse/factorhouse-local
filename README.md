@@ -302,7 +302,7 @@ This stack is organized into two independent profiles. To launch a specific stac
 
 #### 🧬 Data Lineage Stack (`--profile lineage`)
 
-Launch this stack with `docker compose --profile lineage -f ./compose.obsv.yml up -d`.
+Launch this stack with `docker compose --profile lineage -f ./compose-obsv.yml up -d`.
 
 - **`marquez-api` (`marquezproject/marquez:0.51.1`)**: The core Marquez backend service. It provides a RESTful API compliant with the OpenLineage standard, allowing it to receive metadata from integrated tools like Flink, Spark, and Airflow.
 - **`marquez-web` (`marquezproject/marquez-web:0.51.1`)**: The web interface for Marquez, which visualizes the collected OpenLineage data. It allows users to explore interactive data lineage graphs and trace the journey of their data.
@@ -311,7 +311,7 @@ Launch this stack with `docker compose --profile lineage -f ./compose.obsv.yml u
 
 #### 📊 Telemetry & Observability Stack (`--profile telemetry`)
 
-Launch this stack with `docker compose --profile telemetry -f ./compose.obsv.yml up -d`.
+Launch this stack with `docker compose --profile telemetry -f ./compose-obsv.yml up -d`.
 
 - **`prometheus` (`prom/prometheus:v3.5.0`)**: A time-series database that collects and stores metrics by scraping configured endpoints. It's configured to scrape metrics from other services in the ecosystem (like Kpow or Flink).
   - **UI is exposed on port**: `19090`
@@ -323,7 +323,7 @@ Launch this stack with `docker compose --profile telemetry -f ./compose.obsv.yml
 💡 **Note:** You can launch both stacks using:
 
 ```bash
-docker compose --profile lineage --profile telemetry -f ./compose.obsv.yml up -d
+docker compose --profile lineage --profile telemetry -f ./compose-obsv.yml up -d
 ```
 
 ---
