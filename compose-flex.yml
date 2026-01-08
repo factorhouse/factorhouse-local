@@ -175,7 +175,12 @@ services:
   postgres:
     image: postgres:17
     container_name: postgres
-    command: ["postgres", "-c", "wal_level=logical"]
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements"
     ports:
       - 5432:5432
     networks:
