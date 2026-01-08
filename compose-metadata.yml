@@ -1,6 +1,6 @@
 services:
   omt-db:
-    image: docker.getcollate.io/openmetadata/postgresql:1.11.3
+    image: docker.getcollate.io/openmetadata/postgresql:1.11.4
     container_name: omt_db
     restart: always
     command: "--work_mem=10MB"
@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: omt_pass
       POSTGRES_DB: omt_db
     ports:
-      - "5434:5432"   
+      - "5434:5432"
     networks:
       - factorhouse
     profiles:
@@ -42,7 +42,7 @@ services:
       retries: 10
 
   omt-migrate:
-    image: docker.getcollate.io/openmetadata/server:1.11.3
+    image: docker.getcollate.io/openmetadata/server:1.11.4
     container_name: omt_migrate
     command: "./bootstrap/openmetadata-ops.sh migrate"
     networks:
@@ -54,7 +54,7 @@ services:
       SERVER_PORT: ${SERVER_PORT:-8585}
       SERVER_ADMIN_PORT: ${SERVER_ADMIN_PORT:-8586}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      # Migration 
+      # Migration
       MIGRATION_LIMIT_PARAM: ${MIGRATION_LIMIT_PARAM:-1200}
       # OpenMetadata Server Authentication Configuration
       AUTHORIZER_CLASS_NAME: ${AUTHORIZER_CLASS_NAME:-org.openmetadata.service.security.DefaultAuthorizer}
@@ -107,7 +107,7 @@ services:
       AIRFLOW_TIMEOUT: ${AIRFLOW_TIMEOUT:-10}
       FERNET_KEY: ${FERNET_KEY:-jJ/9sz0g0OHxsfxOoSfdFdmk3ysNmPRnH3TUAbz3IHA=}
       # Secrets Manager Configuration
-      SECRET_MANAGER: ${SECRET_MANAGER:-db}      
+      SECRET_MANAGER: ${SECRET_MANAGER:-db}
       # Heap OPTS Configurations
       OPENMETADATA_HEAP_OPTS: ${OPENMETADATA_HEAP_OPTS:--Xmx1G -Xms1G}
       # Mask passwords values in UI
@@ -121,7 +121,7 @@ services:
         condition: service_healthy
 
   omt-server:
-    image: docker.getcollate.io/openmetadata/server:1.11.3
+    image: docker.getcollate.io/openmetadata/server:1.11.4
     container_name: omt_server
     restart: always
     ports:
@@ -191,7 +191,7 @@ services:
       # Heap OPTS Configurations
       OPENMETADATA_HEAP_OPTS: ${OPENMETADATA_HEAP_OPTS:--Xmx1G -Xms1G}
       # Mask passwords values in UI
-      MASK_PASSWORDS_API: ${MASK_PASSWORDS_API:-false}      
+      MASK_PASSWORDS_API: ${MASK_PASSWORDS_API:-false}
       # OpenMetadata Web Configuration
       WEB_CONF_URI_PATH: ${WEB_CONF_URI_PATH:-"/api"}
     depends_on:
@@ -202,10 +202,11 @@ services:
       omt-migrate:
         condition: service_completed_successfully
     healthcheck:
-      test: [ "CMD", "wget", "-q", "--spider",  "http://localhost:8586/healthcheck" ]
+      test:
+        ["CMD", "wget", "-q", "--spider", "http://localhost:8586/healthcheck"]
 
   omt-ingestion:
-    image: docker.getcollate.io/openmetadata/ingestion:1.11.3
+    image: docker.getcollate.io/openmetadata/ingestion:1.11.4
     container_name: omt_ingestion
     entrypoint: /bin/bash
     # command:
