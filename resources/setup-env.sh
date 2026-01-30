@@ -49,9 +49,15 @@ curl --silent -o $KAFKA_CONNECTOR_PATH/confluent.zip \
 ((CURRENT_STEP++)); progress_bar
 
 curl --silent -o $KAFKA_CONNECTOR_PATH/debezium-connector-postgres.tar.gz \
-  https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/3.1.1.Final/debezium-connector-postgres-3.1.1.Final-plugin.tar.gz \
+  https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/3.4.0.Final/debezium-connector-postgres-3.4.0.Final-plugin.tar.gz \
   && tar -xzf $KAFKA_CONNECTOR_PATH/debezium-connector-postgres.tar.gz -C $KAFKA_CONNECTOR_PATH \
   && rm $KAFKA_CONNECTOR_PATH/debezium-connector-postgres.tar.gz
+
+curl --silent -o $KAFKA_CONNECTOR_PATH/debezium-openlineage-core.tar.gz \
+  https://repo1.maven.org/maven2/io/debezium/debezium-openlineage-core/3.4.0.Final/debezium-openlineage-core-3.4.0.Final-libs.tar.gz \
+  && tar -xzf $KAFKA_CONNECTOR_PATH/debezium-openlineage-core.tar.gz -C $KAFKA_CONNECTOR_PATH \
+  && cp -r $KAFKA_CONNECTOR_PATH/debezium-openlineage-core/* $KAFKA_CONNECTOR_PATH/debezium-connector-postgres/ \
+  && rm -r $KAFKA_CONNECTOR_PATH/debezium-openlineage-core*
 ((CURRENT_STEP++)); progress_bar
 
 mkdir -p $KAFKA_CONNECTOR_PATH/msk-datagen
