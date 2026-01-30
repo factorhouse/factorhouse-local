@@ -1,5 +1,4 @@
-x-common-environment: &kafka_broker_common_env_vars
-  # KRaft settings
+x-common-environment: &kafka_broker_common_env_vars # KRaft settings
   KAFKA_PROCESS_ROLES: "broker,controller"
   KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
   KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-1:19091,2@kafka-2:19091,3@kafka-3:19091"
@@ -67,13 +66,15 @@ services:
       CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
       CONNECT_PLUGIN_PATH: /usr/share/java/,/etc/kafka-connect/jars,/etc/kafka-connect/plugins
       AWS_REGION: us-east-1 # for iceberg sink
-      ## Config for OpenLineage
+      ## OpenLineage config for custom SMT
       OPENLINEAGE_URL: http://marquez-api:5000
       OPENLINEAGE_NAMESPACE: fh-local
       KAFKA_BOOTSTRAP: "kafka-1:19092"
     volumes:
       - ./resources/deps/kafka/connector:/etc/kafka-connect/jars
       - ./resources/kpow/plugins:/etc/kafka-connect/plugins
+      ## OpenLineage config for Debezium connector
+      - ./resources/openlineage/kafka/openlineage.yml:/etc/kafka-connect/openlineage.yml
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]
       interval: 5s
