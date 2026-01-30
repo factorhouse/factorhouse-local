@@ -49,6 +49,7 @@
         <database>system</database>
         <table>query_log</table>
         <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <engine>ENGINE = MergeTree PARTITION BY event_date ORDER BY (event_time) TTL event_date + INTERVAL 30 DAY SETTINGS ttl_only_drop_parts = 1</engine>
     </query_log>
 
     <!-- Metric log contains rows with current values of ProfileEvents, CurrentMetrics collected
