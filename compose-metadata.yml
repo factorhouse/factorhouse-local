@@ -206,7 +206,11 @@ services:
         ["CMD", "wget", "-q", "--spider", "http://localhost:8586/healthcheck"]
 
   omt-ingestion:
-    image: docker.getcollate.io/openmetadata/ingestion:1.11.4
+    image: omt-ingestion:1.11.4
+    build:
+      context: ./resources/openmetadata/
+      dockerfile: Dockerfile
+    pull_policy: never
     container_name: omt_ingestion
     entrypoint: /bin/bash
     # command:
