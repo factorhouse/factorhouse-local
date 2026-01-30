@@ -19,7 +19,7 @@ state.backend.rocksdb.memory.managed: true
 # state.backend: hashmap
 
 # Durable directories for checkpoints and savepoints
-# 💡 Ensure object storage is backed-up with appropriate lifecycle policies. 
+# 💡 Ensure object storage is backed-up with appropriate lifecycle policies.
 state.checkpoints.dir: s3a://flink-checkpoints/checkpoints/
 state.savepoints.dir: s3a://flink-savepoints/savepoints/
 
@@ -48,13 +48,13 @@ metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.Prometh
 metrics.reporter.prom.port: 9249
 
 # Add this line to resolve dependency conflicts between Flink's core and its connectors.
-classloader.resolve-order: parent-first
+# classloader.resolve-order: parent-first
+classloader.resolve-order: child-first
 
 # Enable streaming Iceberg queries with OPTIONS
 table.dynamic-table-options.enabled: true
-
 # Checkpointing
-# 💡 While checkpointing should be configured by individual jobs. 
+# 💡 While checkpointing should be configured by individual jobs.
 # For a safety net, consider adding sensible global defaults.
 # This ensures no streaming job can be deployed without being fault-tolerant.
 # execution.checkpointing.mode: EXACTLY_ONCE
