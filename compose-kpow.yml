@@ -16,6 +16,14 @@ x-common-environment: &kafka_broker_common_env_vars # KRaft settings
   KAFKA_LOG_RETENTION_BYTES: "524288000" # 500 MB
   KAFKA_LOG_SEGMENT_BYTES: "67108864" # 64 MB segments
   KAFKA_LOG_RETENTION_MS: "86400000" # 1 day
+  # KIP-932 Share Groups configuration
+  # Enables the Share Group protocol alongside legacy and new consumer protocols
+  KAFKA_GROUP_COORDINATOR_REBALANCE_PROTOCOLS: "classic,consumer,share"
+  # Activates the Share Coordinator module on the brokers
+  KAFKA_SHARE_COORDINATOR_ENABLE: "true"
+  KAFKA_GROUP_SHARE_ENABLE: "true"
+  # Required to use preview/early-access APIs in the Kafka 4.0/4.1 lifecycle
+  KAFKA_UNSTABLE_API_VERSIONS_ENABLE: "true"
 
 services:
   schema:
