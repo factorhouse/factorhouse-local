@@ -5,6 +5,6 @@
   </property>
   <property>
     <name>hive.metastore.warehouse.dir</name>
-    <value>s3a://warehouse/</value>
+    <value>s3a://warehouse</value>
   </property>
 </configuration>

@@ -1,6 +1,14 @@
 -- //
 -- // Configure the main development database
 -- //
+-- Create pg_stat_statements extension for fh_dev (REQUIRED for the view to exist)
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+-- SHOW shared_preload_libraries;
+-- SELECT COUNT(*) FROM pg_stat_statements;
+
+-- Grant global read stats role (This is an instance-level role, so doing it here covers all DBs)
+GRANT pg_read_all_stats TO db_user;
+
 -- Create schema
 CREATE SCHEMA IF NOT EXISTS demo;
 
@@ -24,3 +32,7 @@ CREATE DATABASE metastore;
 \connect metastore;
 
 GRANT ALL PRIVILEGES ON DATABASE metastore TO db_user;
+
+-- Create pg_stat_statements extension for metastore
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+

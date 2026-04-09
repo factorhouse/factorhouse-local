@@ -175,7 +175,16 @@ services:
   postgres:
     image: postgres:17
     container_name: postgres
-    command: ["postgres", "-c", "wal_level=logical"]
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements" # For OMT PostgreSQL connector
+      - "-c"
+      - "pg_stat_statements.track=all" # For OMT stored procedure lineage
+      - "-c"
+      - "log_statement=all" # For OMT detailed logging
     ports:
       - 5432:5432
     networks:
@@ -246,13 +255,16 @@ services:
       - ./resources/spark/log4j2.properties:/opt/spark/conf/log4j2.properties:ro
       - ./resources/spark/hive-site.xml:/opt/spark/conf/hive-site.xml
       - ./resources/spark/core-site.xml:/opt/spark/conf/core-site.xml
-      # Iceberg, Hadoop & OpenLineage dependencies
+      # Iceberg, Hadoop dependencies
       - ./resources/deps/spark/iceberg/iceberg-spark-runtime-3.5_2.12-1.8.1.jar:/opt/spark/jars/iceberg-spark-runtime-3.5_2.12-1.8.1.jar
       - ./resources/deps/spark/iceberg/iceberg-aws-bundle-1.8.1.jar:/opt/spark/jars/iceberg-aws-bundle-1.8.1.jar
-      - ./resources/deps/spark/lineage/openlineage-spark_2.12-1.37.0.jar:/opt/spark/jars/openlineage-spark_2.12-1.37.0.jar
       - ./resources/deps/hadoop/hadoop-aws-3.3.6.jar:/opt/spark/jars/hadoop-aws-3.3.6.jar
       - ./resources/deps/hadoop/aws-java-sdk-bundle-1.11.1026.jar:/opt/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
       - ./resources/deps/hadoop/hadoop-common-3.3.6.jar:/opt/spark/jars/hadoop-common-3.3.6.jar
+      # Lineage dependencies
+      - ./resources/deps/spark/lineage/openlineage-spark_2.12-1.37.0.jar:/tmp/jars/openlineage-spark_2.12-1.37.0.jar
+      - ./resources/deps/spark/lineage/openmetadata-spark-agent-1.1.jar:/tmp/jars/openmetadata-spark-agent-1.1.jar
+      - ./resources/deps/postgres/postgresql-42.7.3.jar:/tmp/jars/postgresql-42.7.3.jar
     environment:
       - SPARK_NO_DAEMONIZE=true
       - AWS_ACCESS_KEY_ID=admin
