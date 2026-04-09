@@ -2,7 +2,7 @@
 
 # Factor House Local
 
-![architecture](./images/factorhouse-local.png)
+![architecture](./images/factorhouse-local-2-4.png)
 
 ## Introduction
 
